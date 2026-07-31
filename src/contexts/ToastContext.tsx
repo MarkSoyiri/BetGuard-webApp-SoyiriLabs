@@ -69,14 +69,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 60, scale: 0.9 }}
               transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-              className="glass-strong pointer-events-auto relative flex items-center gap-3 overflow-hidden rounded-2xl p-4 pr-10"
+              className="glass-strong pointer-events-auto relative flex items-center gap-2.5 overflow-hidden rounded-2xl p-3 pr-9 sm:gap-3 sm:p-4 sm:pr-10"
             >
               <span
                 className={`absolute left-0 top-0 h-full w-1 ${BARS[t.type]}`}
                 aria-hidden="true"
               />
               <span className="shrink-0">{ICONS[t.type]}</span>
-              <p className="text-sm font-medium text-slate-800 dark:text-slate-100">{t.message}</p>
+              <p className="text-xs font-medium text-slate-800 dark:text-slate-100 sm:text-sm">{t.message}</p>
               <button
                 onClick={() => dismiss(t.id)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"

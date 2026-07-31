@@ -1,0 +1,65 @@
+HOW BETGUARD WORKS
+=========================================================================
+
+WHAT IT IS
+BetGuard is a free companion app that helps you bet responsibly. It is
+NOT a betting platform — you cannot place bets, deposit money, or win
+real money through it. It is simply a tool to help you understand and
+control your own betting habits.
+
+WHAT IT DOES FOR YOU
+
+1. Track every bet
+   You log each bet you place: which platform, which sport, how much
+   you staked, and whether it won or lost. Over time you build a clear
+   picture of your real spending.
+
+2. Keep you within budget
+   You set a monthly betting budget (in GH₵). BetGuard shows a live
+   gauge of how much of that budget you have used, and warns you as you
+   get close to your limit.
+
+3. Turn betting money into savings
+   Instead of staking money you would have bet, you can add it to a
+   savings goal — like an emergency fund or a new phone. BetGuard shows
+   your progress toward each goal.
+
+4. Teach you good habits
+   - Daily, weekly, and monthly challenges (e.g. "No Bet Today") that
+     you complete and claim rewards for.
+   - Educational articles and a short quiz on responsible betting and
+     money basics.
+   - A risk assessment quiz that tells you whether your habits are
+     Low, Medium, or High risk, and gives personal advice.
+
+5. Give you a personal AI coach
+   You can chat with the built-in coach. It reads YOUR numbers (your
+   spending, win rate, budget status) and answers questions like "How
+   much have I spent this month?" or "What should I do after a big
+   loss?".
+
+6. Keep you connected and motivated
+   - A community feed where you can share stories and tips.
+   - Achievements (badges) you unlock as you build better habits.
+   - Notifications that remind you of budgets, challenges, and wins.
+
+WHERE YOUR DATA LIVES
+Everything is stored locally on YOUR device (your browser's
+localStorage). There is no account database or server, so nothing is
+uploaded anywhere. If you clear your browser data, BetGuard starts
+fresh. You can also export or reset your data from the Settings page.
+
+HOW TO GET STARTED
+1. Open the app (the Vercel link) and click "Get Started".
+2. Sign up (any details work — it's a demo) and you'll land on your
+   Dashboard.
+3. Log a bet from the "Betting Log" page to see your stats change.
+4. Set a monthly budget, create a savings goal, and take the risk
+   assessment.
+5. Explore the AI Coach, Challenges, Education, and Community pages.
+
+DEMO LOGIN
+Because there is no real backend, the demo accepts any email and
+password, and gives you a sample profile ("Alex Mensah") pre-loaded with
+70 days of demo betting history so the dashboard looks alive from day
+one.

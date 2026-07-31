@@ -277,8 +277,8 @@ export function Savings() {
         <form onSubmit={handleCreate} noValidate className="space-y-4">
           <Input label="Goal name" placeholder="Emergency fund" value={form.name} onChange={setField('name')} error={errors.name} icon={<Target className="size-4" aria-hidden="true" />} />
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Target amount (GH₵)" type="number" min="1" placeholder="1000" value={form.target} onChange={setField('target')} error={errors.target} />
-            <Input label="Current amount (GH₵)" type="number" min="0" placeholder="0" value={form.current} onChange={setField('current')} />
+            <Input label="Target (GH₵)" type="number" min="1" placeholder="1000" value={form.target} onChange={setField('target')} error={errors.target} />
+            <Input label="Current (GH₵)" type="number" min="0" placeholder="0" value={form.current} onChange={setField('current')} />
           </div>
           <Input label="Deadline" type="date" value={form.deadline} onChange={setField('deadline')} error={errors.deadline} />
           <div className="flex justify-end gap-3 pt-1">

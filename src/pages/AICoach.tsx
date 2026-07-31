@@ -149,7 +149,7 @@ export function AICoach() {
         subtitle="A supportive coach that understands your numbers — no judgement, just clarity."
       />
 
-      <div className="glass flex h-[68vh] min-h-[480px] flex-col overflow-hidden rounded-3xl">
+      <div className="glass flex h-[62vh] min-h-[400px] flex-col overflow-hidden rounded-3xl sm:h-[68vh] sm:min-h-[480px]">
         <div className="flex items-center gap-3 border-b border-slate-200/60 bg-gradient-to-r from-primary/[0.06] to-secondary/[0.06] px-6 py-4 dark:border-slate-700/60">
           <div className="relative">
             <div className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-secondary text-white shadow-lg shadow-primary/30">
@@ -220,14 +220,14 @@ export function AICoach() {
           <div ref={endRef} />
         </div>
 
-        <div className="border-t border-slate-200/60 p-4 dark:border-slate-700/60">
-          <div className="mb-3 flex flex-wrap gap-2">
+        <div className="border-t border-slate-200/60 p-3 sm:p-4 dark:border-slate-700/60">
+          <div className="mb-3 flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
             {AI_COACH_QUICK_QUESTIONS.map((q) => (
               <button
                 key={q}
                 onClick={() => send(q)}
                 disabled={typing}
-                className="rounded-full border border-slate-200 bg-white/60 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-secondary hover:bg-secondary/10 hover:text-secondary-dark disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300"
+                className="shrink-0 whitespace-nowrap rounded-full border border-slate-200 bg-white/60 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-secondary hover:bg-secondary/10 hover:text-secondary-dark disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300"
               >
                 {q}
               </button>

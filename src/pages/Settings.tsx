@@ -123,13 +123,13 @@ export function Settings() {
               <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 {theme === 'light' ? <Moon className="size-5" aria-hidden="true" /> : <Sun className="size-5" aria-hidden="true" />}
               </div>
-              <div className="text-left">
+              <div className="min-w-0 flex-1 text-left">
                 <p className="text-sm font-bold text-ink dark:text-white">Dark mode</p>
                 <p className="text-xs text-slate-400">Easier on the eyes at night</p>
               </div>
             </div>
             <span
-              className={`relative h-7 w-12 rounded-full transition-colors ${theme === 'dark' ? 'bg-secondary' : 'bg-slate-300'}`}
+              className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${theme === 'dark' ? 'bg-secondary' : 'bg-slate-300'}`}
               aria-hidden="true"
             >
               <motion.span
@@ -153,13 +153,13 @@ export function Settings() {
               <div className="flex size-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
                 <Bell className="size-5" aria-hidden="true" />
               </div>
-              <div className="text-left">
+              <div className="min-w-0 flex-1 text-left">
                 <p className="text-sm font-bold text-ink dark:text-white">Budget & reminder alerts</p>
                 <p className="text-xs text-slate-400">Warnings at 80%, 90% and 100% of your budget</p>
               </div>
             </div>
             <span
-              className={`relative h-7 w-12 rounded-full transition-colors ${notifEnabled ? 'bg-secondary' : 'bg-slate-300'}`}
+              className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${notifEnabled ? 'bg-secondary' : 'bg-slate-300'}`}
               aria-hidden="true"
             >
               <motion.span

@@ -5,6 +5,7 @@ import { Landing } from '@/pages/Landing';
 import { Login } from '@/pages/Login';
 import { Register } from '@/pages/Register';
 import { PageLoader } from '@/components/ui/PageLoader';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 const Dashboard = lazy(() => import('@/pages/Dashboard').then((m) => ({ default: m.Dashboard })));
 const BettingLog = lazy(() => import('@/pages/BettingLog').then((m) => ({ default: m.BettingLog })));
@@ -33,30 +34,32 @@ export default function App() {
   return (
     <>
       <ScrollToTop />
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/" element={<DashboardLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/betting-log" element={<BettingLog />} />
-            <Route path="/budget" element={<Budget />} />
-            <Route path="/savings" element={<Savings />} />
-            <Route path="/coach" element={<AICoach />} />
-            <Route path="/education" element={<Education />} />
-            <Route path="/risk-assessment" element={<RiskAssessment />} />
-            <Route path="/challenges" element={<Challenges />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/statistics" element={<Statistics />} />
-            <Route path="/achievements" element={<Achievements />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/admin" element={<Admin />} />
-          </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/" element={<DashboardLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/betting-log" element={<BettingLog />} />
+              <Route path="/budget" element={<Budget />} />
+              <Route path="/savings" element={<Savings />} />
+              <Route path="/coach" element={<AICoach />} />
+              <Route path="/education" element={<Education />} />
+              <Route path="/risk-assessment" element={<RiskAssessment />} />
+              <Route path="/challenges" element={<Challenges />} />
+              <Route path="/community" element={<Community />} />
+              <Route path="/statistics" element={<Statistics />} />
+              <Route path="/achievements" element={<Achievements />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/admin" element={<Admin />} />
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
     </>
   );
 }

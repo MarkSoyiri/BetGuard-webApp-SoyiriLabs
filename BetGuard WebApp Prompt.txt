@@ -1,0 +1,464 @@
+PROJECT: BetGuard — Responsible Betting Companion Web App
+=========================================================================
+Create a high-fidelity, polished single-page web application called
+"BetGuard" from scratch. It is a PROOF OF CONCEPT / companion app that
+helps people bet responsibly. It is NOT a betting platform — there is no
+real money, no real betting, no backend, no database server, no auth
+server, and no external API. Everything runs client-side and persists in
+localStorage.
+
+=========================================================================
+1. WHAT THE APP DOES (Product Summary)
+=========================================================================
+BetGuard lets a user:
+- Track every bet they place (platform, sport, amount, win/loss, notes).
+- Set a monthly betting budget in Ghana Cedi (GH₵) and see live progress.
+- Create savings goals and move money "saved from betting" into them.
+- Complete daily/weekly/monthly self-control challenges and earn badges.
+- Take a risk assessment quiz that produces a Low/Medium/High risk score.
+- Read educational articles and pass a financial-literacy quiz.
+- Chat with a rule-based "AI Coach" that answers questions about their
+  own betting data.
+- Share posts and comment in a community feed (demo only).
+- View rich, animated statistics and charts (Recharts).
+- Earn/unlock achievements and read in-app notifications.
+- Toggle light/dark theme, update their profile, and (as demo admin)
+  manage "platforms" (CRUD on static demo entries).
+
+Currency is Ghana Cedi (GH₵) and all demo data uses Ghanaian names and
+context. Copy is encouraging, non-judgemental, and responsible-gambling
+focused.
+
+=========================================================================
+2. TECH STACK (exact versions used)
+=========================================================================
+- React 19.2.8
+- Vite 8.2.0
+- TypeScript ~6.0.2
+- Tailwind CSS 4.3.3 (via @tailwindcss/vite plugin, CSS-first config)
+- Framer Motion 12.43
+- React Router DOM 7.18.2
+- Recharts 3.10.1
+- lucide-react 1.28 (icons)
+- @vitejs/plugin-react 6.0.5, @types/react 19.2.18, @types/react-dom 19.2.4
+
+package.json scripts:
+  "dev": "vite"
+  "build": "tsc && vite build"
+  "preview": "vite preview"
+  "typecheck": "tsc --noEmit"
+
+vite.config.ts: react plugin, path alias "@" -> "/src".
+tsconfig.json: standard React+Vite TS setup with paths "@/*": ["./src/*"].
+
+=========================================================================
+3. DESIGN SYSTEM
+=========================================================================
+Colors (CSS custom theme in Tailwind v4 @theme):
+  primary        #1e3a8a
+  primary-dark   #122968
+  primary-light  #2563eb
+  primary-soft   #dbeafe
+  secondary      #10b981
+  secondary-dark #059669
+  accent         #fbbf24
+  warning        #f59e0b
+  danger         #ef4444
+  base           #f8fafc  (page background)
+  surface        #ffffff
+  ink            #0f172a  (heading text)
+  slate-line     #e2e8f0  (borders)
+
+Fonts:
+  --font-sans:    "Inter", ui-sans-serif, system-ui, sans-serif
+  --font-display: "Plus Jakarta Sans", "Inter", sans-serif
+Loaded from Google Fonts in index.css.
+
+Shadows / effects:
+  --shadow-glass:    0 8px 32px rgb(15 23 42 / 0.08)
+  --shadow-glass-lg: 0 20px 48px rgb(15 23 42 / 0.14)
+  --shadow-glow:     0 8px 30px rgb(16 185 129 / 0.35)
+
+Custom Tailwind utilities:
+  glass       -> bg-white/70 backdrop-blur-xl border border-white/60 shadow-glass
+                  dark:bg-slate-900/70 dark:border-white/10
+  glass-strong-> bg-white/85 backdrop-blur-2xl border border-white/70 shadow-glass-lg
+                  dark:bg-slate-900/85 dark:border-white/10
+  text-gradient-> bg-clip-text text-transparent
+  shimmer-bg   -> animated shimmer gradient (loading states)
+
+Custom keyframe animations (defined in @theme):
+  float (y -14px loop), shimmer (background-position loop),
+  pulseRing (green glow ring), gradShift (animated gradient background).
+  Tailwind v4 exposes these as animate-float, animate-float-slow,
+  animate-shimmer, animate-pulse-ring, animate-grad.
+
+Dark mode: class-based, `.dark` on <html>. Declared with:
+  @custom-variant dark (&:where(.dark, .dark *));
+Body: bg-base font-sans text-ink; dark: bg-[#0b1220] text-slate-100.
+Anti-flash: index.html has an inline script BEFORE the app bundle that
+reads localStorage key 'betguard:theme' and adds class 'dark' to <html>
+if it equals "dark" (wrapped in try/catch).
+
+Scrollbar styling, number-input spinner removal, recharts tooltip border
+radius override live in index.css.
+
+UI MOOD: premium fintech look — glassmorphism cards, soft gradients
+(primary -> primary-light, secondary -> emerald, accent -> orange),
+rounded-2xl cards, soft shadows with color tints, framer-motion
+micro-animations on load and hover.
+
+=========================================================================
+4. PROJECT STRUCTURE
+=========================================================================
+/  package.json, vite.config.ts, tsconfig.json, index.html, .gitignore
+   public/favicon.svg, public/icons.svg
+   README.md
+   src/
+     main.tsx
+     App.tsx
+     styles/index.css
+     types/index.ts
+     utils/format.ts, utils/stats.ts, utils/storage.ts
+     hooks/usePersistedState.ts
+     data/sample.ts
+     contexts/ (AppProviders.tsx + Theme, Toast, User, Budget, Bet,
+                Goal, Achievement, Notification, Community)
+     components/
+       ui/       AuthShell, Button, Input, Modal, ConfirmDialog, GlassCard,
+                 Badge (Chip), ProgressBar, CircularGauge, StatCard,
+                 RiskCard, ChartCard, EmptyState, Skeleton, SectionTitle,
+                 PageTransition (PageHeader), PageLoader, FloatingActionButton
+       charts/   chartUtils.tsx (COLORS, ChartTooltip, AXIS_TICK, gridStyle)
+       layout/   Sidebar, Navbar, Footer, nav.ts (nav config)
+     layouts/DashboardLayout.tsx
+     pages/     Landing, Login, Register, Dashboard, BettingLog, Budget,
+                Savings, AICoach, Education, RiskAssessment, Challenges,
+                Community, Statistics, Achievements, Notifications,
+                Settings, Admin
+
+=========================================================================
+5. DATA MODEL (src/types/index.ts)
+=========================================================================
+UserProfile { name, email, age: number|null, occupation,
+  monthlyIncome: number|null, riskLevel: RiskLevel|null, joinedAt,
+  notificationsEnabled: boolean, isAdmin?: boolean }
+
+BetRecord { id, date (ISO yyyy-mm-dd), platform, sport, amount: number,
+  outcome: 'won'|'lost', notes: string }
+
+SavingsGoal { id, name, target: number, current: number, deadline,
+  createdAt }
+
+NotificationType = 'warning'|'success'|'info'|'achievement'|'reminder'
+AppNotification { id, type, title, message, date, read: boolean }
+
+PostComment { id, author, content, date }
+CommunityPost { id, author, authorId?: string, title, content, tag,
+  likes: number, liked: boolean, comments: PostComment[], date }
+
+ChatMessage { id, role: 'user'|'coach', text, time }
+
+Achievement { id, title, description, icon, tier: 'bronze'|'silver'|'gold',
+  unlocked: boolean, unlockedAt?: string }
+
+Challenge { id, title, description, frequency: 'Daily'|'Weekly'|'Monthly',
+  target: number, progress: number, unit, reward, completed: boolean,
+  claimed: boolean }
+
+RiskAssessmentResult { level: RiskLevel, score: number, answers: number[],
+  completedAt }
+RiskLevel = 'Low' | 'Medium' | 'High'
+QuizResult { score, total, passed, completedAt }
+Article { id, title, category, excerpt, readTime, icon, gradient,
+  sections: { heading, body }[] }
+
+=========================================================================
+6. STATE MANAGEMENT + PERSISTENCE
+=========================================================================
+localStorage keys all prefixed "betguard:" (see utils/storage.ts:
+readStorage/writeStorage/removeStorage/clearAllStorage/exportAllStorage/
+importAllStorage). Persistence hook:
+
+  usePersistedState<T>(key, initial):
+    useState(() => readStorage(key, initial));
+    useEffect(() => writeStorage(key, state), [key, state]);
+
+Contexts (provider order matters):
+  ThemeProvider   -> 'theme'        ('light'|'dark', default 'light')
+  ToastProvider   -> in-memory only (not persisted), max 5 toasts,
+                     auto-dismiss 3.8s, top-right, framer-motion spring.
+                     toast(message, type='success').
+  UserProvider    -> 'user' (UserProfile|null), 'authed' (boolean)
+  BudgetProvider  -> 'budget' (number, default 600)
+  BetProvider     -> 'bets' (BetRecord[], default generateDemoBets())
+  GoalProvider    -> 'goals' (SavingsGoal[], default sampleGoals())
+  AchievementProvider -> 'achievements' (Achievement[], sampleAchievements)
+  NotificationProvider -> 'notifications' (AppNotification[],
+                         sampleNotifications; unreadCount derived)
+  CommunityProvider -> 'posts' (CommunityPost[], samplePosts())
+
+Key context API:
+  Bet:        bets, addBet(bet) -> BetRecord, updateBet, deleteBet, resetBets
+  Budget:     monthlyBudget, setMonthlyBudget(clamped >= 0)
+  Goal:       goals, addGoal, contribute(id, amount) [clamps at target],
+              updateGoal, deleteGoal, resetGoals
+  Achievement: achievements, unlockedCount, unlock(id)->boolean,
+              addAchievement(title, desc, icon) [dedupes by title,
+              always unlocked], resetAchievements
+  Notification: notifications, unreadCount, addNotification(title,msg,type),
+              markRead, markAllRead, removeNotification, clearAll,
+              resetNotifications
+  Community:  posts, addPost(post) [sets id, authorId:'me', likes:0,
+              liked:false, comments:[], date:now], deletePost(id),
+              toggleLike(id), addComment(postId, author, content),
+              resetPosts
+  User:       profile, isAuthenticated, isAdmin, login(email,password)->bool,
+              register(profile), logout, updateProfile(patch)
+  Theme:      theme, toggleTheme, setTheme
+  Toast:      toast(message, type)
+
+Demo auth behavior:
+  login(): any credentials accepted; if no existing profile, creates
+  profile "Alex Mensah" with the entered email, isAdmin:true,
+  notificationsEnabled:true, age 24, occupation Student, income 2500.
+  register(): saves the submitted profile, sets isAdmin:true for demo,
+  and marks authed. logout() just flips authed to false (profile kept).
+
+=========================================================================
+7. SEED / DEMO DATA (src/data/sample.ts)
+=========================================================================
+PLATFORMS = ['Platform A', 'Platform B', 'Platform C']
+SPORTS    = ['Football', 'Basketball', 'Tennis']
+
+generateDemoBets(): deterministic PRNG mulberry32(seed=20260731).
+For each of the last 70 days (d from 70 down to 0), 0-2 bets/day
+(P(0)=0.45, P(1)=0.35... use: perDay = rand()<0.45 ? 0 : rand()<0.7 ? 1 : 2).
+amount = round((5 + rand()*195 + (second bet? +30)) / 5) * 5  (multiples of 5)
+outcome: 42% 'won'. notes: won->'Felt lucky, got a nice win.',
+lost->'Slipped up, chasing a loss.'. ids like `demo-${d}-${i}`.
+Sort newest first by date string.
+
+sampleGoals(): Emergency Fund target 5000 current 3200; New Phone 3500/1250;
+Weekend Trip to Cape Coast 1800/600. Deadlines 45-120 days out,
+createdAt 25-60 days ago.
+
+sampleChallenges(): 6 items — "No Bet Today" (Daily, completed:true,
+claimed:false), "Save GH₵20" (Daily), "Track Every Bet" (Weekly, target 7,
+progress 4), "7-Day Challenge" (Weekly, 3/7), "Cut Spending 30%"
+(Monthly, 18/30), "30-Day Challenge" (Monthly, 11/30). Each has reward
+badge names like "Fresh Start Badge", "Penny Saver Badge", etc.
+
+sampleAchievements(): 11 items. 5 pre-unlocked (First Week Completed,
+Stayed Within Budget, Financial Literacy, Risk Assessment, Saved GH₵100)
+with unlockedAt set; remaining 6 unlocked:false (7-Day Streak, Challenge
+Champion, Coach Companion, 30-Day Champion, Low-Risk Lifestyle,
+Bet-Free Month). Icons: calendar, wallet, book, activity, piggy, flame,
+trophy, sparkles, crown, shield, award. Tiers mix bronze/silver/gold.
+
+sampleNotifications(): 6 items mixing types achievement/warning/reminder/
+info/success, some read, some unread, dated 0-4 days ago.
+
+samplePosts(): 4 Ghanaian-authored posts (Kofi A., Efua M., Nana K.,
+Akosua D.) with tags Success Story/Support/Milestone/Discussion, likes,
+some comments. Do NOT use authorId on seeded posts.
+
+sampleArticles(): 6 articles — Understanding Gambling Addiction,
+Financial Literacy Basics, Probability Explained, Managing Money Wisely,
+Mental Health & Betting, Reading Your Own Numbers. Each has 3 sections
+with headings/body. gradients: primary->indigo, secondary->emerald,
+accent->orange, rose->danger, violet->primary, sky->secondary.
+
+quizQuestions: 6 questions about responsible betting (correct answers
+have explanation). riskQuestions: 8 questions, each 4 options with
+weight 4 (score = round(sum / (n*4) * 100)).
+
+AI_COACH_QUICK_QUESTIONS = ["How much have I spent this month?",
+  "Can I afford to keep betting?", "Give me tips to reduce my spending",
+  "What should I do after a big loss?", "How do I set a healthy budget?"]
+
+=========================================================================
+8. ROUTES & LAYOUT
+=========================================================================
+Public routes (no shell): "/", "/login", "/register".
+Auth-gated under DashboardLayout: /dashboard, /betting-log, /budget,
+/savings, /coach, /education, /risk-assessment, /challenges, /community,
+/statistics, /achievements, /notifications, /settings, /admin.
+Unknown paths -> <Navigate to="/" replace />.
+
+App.tsx: lazy() every page except Landing/Login/Register, wrapped in
+<Routes> inside <Suspense fallback={<PageLoader/>}>. Named exports via
+.then((m) => ({ default: m.X })). Also a <ScrollToTop/> component that
+window.scrollTo(0,0) on pathname change.
+
+DashboardLayout: if !isAuthenticated -> <Navigate to="/login" replace
+state={{from: location.pathname}}/>. Renders Sidebar + content column
+(Navbar, animated <Outlet/> with AnimatePresence keyed by pathname,
+footer text "BetGuard — responsible betting companion · Demo data is
+stored locally in your browser"). Sidebar has collapse + mobile drawer;
+Navbar has hamburger for mobile.
+
+Nav config (nav.ts): NAV_SECTIONS grouped Overview (Dashboard,
+Statistics), Tracking (Betting Log, Budget, Savings Goals, Challenges),
+Support (AI Coach, Education, Risk Assessment, Community), Account
+(Achievements, Notifications, Settings). ADMIN_ITEM = "Admin Dashboard"
+shown only when isAdmin. Lucide icons for each.
+
+=========================================================================
+9. PAGES (behaviour details)
+=========================================================================
+Landing (/): marketing page — animated gradient hero, floating element
+animations, stats strip, feature cards (glass), testimonials, FAQ,
+CTA buttons to /register and /login, navbar + footer, scroll animations.
+
+Login: email + password form in AuthShell, any credentials succeed,
+redirects to /dashboard. Link to /register.
+Register: name, email, password, age, occupation, monthly income
+validation; creates profile (isAdmin:true), toast, redirect /dashboard.
+
+Dashboard: greeting ("Good Morning/Afternoon/Evening, {first name}"),
+date + month label. 4 StatCards: Money spent (of budget), Budget
+remaining, Savings (of target), Risk level. Area chart (spending last 30
+days), Bar chart (last 8 weeks, last 3 bars red), Recent betting
+activity list, Savings progress bar + top 2 goals, AI recommendations
+(dynamic list based on budget status, win rate, spending), Recent
+notifications (click -> /notifications), RiskCard. CTA "Log a bet".
+
+BettingLog: full CRUD. Add bet form (platform select from PLATFORMS,
+sport select from SPORTS, date default today, amount, outcome toggle,
+notes). List/table with filters (all/won/lost, platform), search,
+edit (pre-filled modal), delete with ConfirmDialog, reset demo data.
+Toast "Bet logged successfully." on add. Summary chips (total, spent,
+won/lost counts, win rate, net).
+
+Budget: input GH₵ budget + "Update budget" (toast, creates warning
+notification if overrun). CircularGauge with progress %, ProgressBar,
+status zones safe/caution/warning/critical with color + message
+(budgetMessage util). Warning rules card (80/90/100% thresholds with
+"Armed"/"Triggered"). Side panel: Spent this month, Budget remaining,
+Safe daily budget (remaining / days left in month), guard tips.
+
+Savings: total saved + overall progress bar. Goal cards with
+CircularGauge %, saved/target, "Add money" inline form (clamps at
+target), edit (modal), delete (ConfirmDialog), estimated completion
+date (based on save rate since createdAt). Empty state when no goals.
+
+AICoach: chat UI with ChatMessage list, rule-based reply generator that
+uses real user stats (monthly spending, win rate, budget status), quick
+question chips, typing indicator, auto-scroll, unread achievements for
+"Coach Companion" (after 10 questions via addAchievement).
+
+Education: grid of article cards (gradient icon, category, read time);
+article reader modal/page with sections; a 6-question literacy quiz with
+score + pass/fail result, marks "Financial Literacy" achievement.
+
+RiskAssessment: 8-question form (options 0-3 weighted), animated
+progress, result screen showing score + Low/Medium/High level with
+description, saves RiskAssessmentResult, updates profile.riskLevel,
+unlocks "Risk Assessment" achievement, notification.
+
+Challenges: list of challenges with frequency badges, progress bars
+(progress/target), "Complete"/"Claim reward" flow, completed state with
+confetti-ish styling, reward claims add achievements.
+
+Community: post feed with tag chips, like buttons (toggleLike), comment
+toggle + addComment, and a "New post" composer (title, tag, content)
+that uses the logged-in user's FIRST NAME as author + authorId:'me',
+suffix "(you)" on own posts. Own posts (authorId==='me' or author
+contains '(you)') show a delete button that opens ConfirmDialog and
+calls deletePost (toast after). New comments by "you". Sort newest first.
+
+Statistics: rich analytics page — date range cards, total spent/net,
+win rate ring/gauge, monthly trend chart, platform breakdown bar chart,
+sport breakdown pie/donut, average stake, longest win/loss streak,
+best/worst day, betting frequency heat or calendar grid.
+
+Achievements: grid of badges grouped/labeled by tier (bronze/silver/gold),
+locked ones dimmed with lock icon, unlocked show date unlocked.
+unlockedCount header.
+
+Notifications: list with type icon/colors, filter tabs (All, warning,
+success, info, achievement, reminder), mark read / mark all read, delete
+individual, clear all, unread badge counts.
+
+Settings: profile form (name, email, age, occupation, monthly income)
+with updateProfile + toast "Settings saved successfully."; notification
+preference toggle; theme toggle; demo utilities — export/import JSON
+(exportAllStorage/importAllStorage) and "Reset demo data" (clears
+betguard: keys + reloads).
+
+Admin (/admin, only when isAdmin): demo admin dashboard managing
+PLATFORMS (add/edit/delete static list — keep in localStorage) and a
+read-only summary of app state (bet totals, users, etc.). Guard:
+if !isAdmin -> Navigate to /dashboard.
+
+=========================================================================
+10. SHARED UI COMPONENTS (src/components/ui)
+=========================================================================
+Button: variants primary/secondary/ghost/danger, size sm/md, fullWidth,
+icon prop.
+Input: label, type, value, onChange, error (red ring + message), icon.
+Modal: overlay + centered glass panel, framer-motion scale/fade, close
+on overlay + X, title/subtitle.
+ConfirmDialog: compact Modal with message + Cancel/Confirm (danger).
+GlassCard: motion.div whileHover y:-4, glass rounded-2xl.
+Badge.tsx -> Chip: tonal pill (slate/primary/secondary/warning/accent/
+danger).
+ProgressBar: animated fill with optional label.
+CircularGauge: SVG ring showing % with children in center, color + size
+props.
+StatCard: icon tile + label + value + sub, tone colors, delay stagger.
+RiskCard: shows risk level with colored ring/gauge + advice.
+ChartCard: glass card with title, subtitle, optional action.
+EmptyState: icon, title, message, optional action button.
+Skeleton / shimmer placeholders. SectionTitle for Landing.
+PageLoader: centered pulse/logo loader (Suspense fallback).
+AuthShell: split-screen auth layout (brand panel + form panel).
+FloatingActionButton: quick action (e.g., new bet) on mobile.
+PageTransition (PageHeader): animated page title block.
+
+Chart utils (chartUtils.tsx): COLORS palette, ChartTooltip (glass styled
+custom tooltip for Recharts), AXIS_TICK (11px slate), gridStyle (dashed
+slate lines). Recharts default tooltip border-radius overridden in CSS.
+
+=========================================================================
+11. UTILITIES
+=========================================================================
+format.ts: uid(prefix), todayISO, daysAgoISO(n), formatGHS(amount,
+decimals=0) -> "GH₵ 1,234", formatDate / formatDateShort (en-GB),
+timeAgo (just now / xm / xh / xd / xw / date), greeting(),
+monthLabel(), startOfMonthISO().
+stats.ts: computeStats (total, spent, won, lost, net, winRate),
+monthlySpending(bets, year?, month?), assessRisk(answers) -> {score,
+level} (score<40 Low, <70 Medium, else High), riskColor(level),
+budgetProgress, budgetStatus (>=100% critical, >=90% warning, >=80%
+caution), budgetMessage (text + tone), dateRange(days).
+
+=========================================================================
+12. KNOWN GOTCHAS / FIXES TO PRESERVE
+=========================================================================
+- MOBILE OVERFLOW: any multi-column CSS grid that renders on mobile MUST
+  start with `grid grid-cols-1 ...` (e.g. `grid grid-cols-1 gap-5
+  sm:grid-cols-2 xl:grid-cols-4`). Without the explicit first column
+  (minmax(0,1fr)), a single implicit auto track sizes to max-content of
+  long nowrap/truncate rows and causes horizontal overflow on small
+  screens. Verified: all routes have scrollWidth == innerWidth at 390px.
+- Dark mode requires BOTH the index.html anti-flash inline script AND
+  ThemeContext applying/removing the class on mount + on change.
+- Recharts: wrap in fixed-height div (h-64) + ResponsiveContainer.
+- Lazy route components must use `.then((m) => ({ default: m.X }))`.
+- Toast state must NOT be persisted (in-memory only).
+- Achievement unlock() flips `unlocked`/`unlockedAt` when
+  `a.unlocked` is false; pre-unlocked seed items carry unlockedAt.
+
+=========================================================================
+13. VERIFICATION STEPS
+=========================================================================
+- npm install; npm run dev; npm run typecheck must be clean; npm run build.
+- Browser test at 390px width: no horizontal scroll on any route.
+- Test full flows: register -> dashboard -> add/edit/delete bet ->
+  budget update -> savings contribute -> challenge claim -> quiz ->
+  risk assessment -> AI coach chat -> community post/like/comment/
+  delete own post -> achievements -> notifications -> settings
+  (export/import/reset) -> admin (platform CRUD) -> dark mode -> logout.
+- Confirm localStorage keys under "betguard:" prefix.

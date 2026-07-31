@@ -164,7 +164,14 @@ export function Landing() {
                 >
                   Sign in
                 </Link>
-                <Button to="/register" icon={<ArrowRight className="size-4" />}>Get Started</Button>
+                <Button
+                  to="/register"
+                  size="sm"
+                  icon={<ArrowRight className="size-4" />}
+                  className="lg:px-5 lg:py-2.5 lg:text-sm lg:gap-2"
+                >
+                  Get Started
+                </Button>
               </>
             )}
           </div>

@@ -11,6 +11,12 @@ import {
   Plus,
   ChevronRight,
   Clock,
+  Ticket,
+  Bot,
+  Receipt,
+  ClipboardCheck,
+  Timer,
+  Activity,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -28,21 +34,22 @@ import { StatCard } from '@/components/ui/StatCard';
 import { RiskCard } from '@/components/ui/RiskCard';
 import { ChartCard } from '@/components/ui/ChartCard';
 import { Chip } from '@/components/ui/Badge';
+import { GlassCard } from '@/components/ui/GlassCard';
 import { useBets } from '@/contexts/BetContext';
 import { useBudget } from '@/contexts/BudgetContext';
 import { useGoals } from '@/contexts/GoalContext';
 import { useUser } from '@/contexts/UserContext';
 import { useLimits } from '@/contexts/LimitsContext';
 import { useNotifications } from '@/contexts/NotificationContext';
-import { greeting, formatGHS, formatDateShort, timeAgo, monthLabel } from '@/utils/format';
-import { computeStats, budgetStatus, monthlySpending, dateRange, computeHealthScore } from '@/utils/stats';
+import { greeting, formatGHS, formatDateShort, timeAgo, monthLabel, todayISO } from '@/utils/format';
+import { computeStats, budgetStatus, monthlySpending, dateRange, computeHealthScore, spentOnDate } from '@/utils/stats';
 import { ChartTooltip, AXIS_TICK, gridStyle, COLORS } from '@/components/charts/chartUtils';
 
 export function Dashboard() {
   const { profile } = useUser();
   const { bets } = useBets();
   const { monthlyBudget } = useBudget();
-  const { limits } = useLimits();
+  const { limits, isCooldownActive, cooldownEndsAt } = useLimits();
   const { goals } = useGoals();
   const { notifications } = useNotifications();
   const navigate = useNavigate();
@@ -85,6 +92,19 @@ export function Dashboard() {
   const riskLevel = profile?.riskLevel ?? health.level;
 
   const savingsPct = savingsTarget > 0 ? Math.round((savingsTotal / savingsTarget) * 100) : 0;
+
+  const todaySpent = useMemo(() => spentOnDate(bets, todayISO()), [bets]);
+  const todayLimitPct =
+    limits.enabled && limits.daily > 0 ? Math.min(100, Math.round((todaySpent / limits.daily) * 100)) : 0;
+  const pendingCount = useMemo(() => bets.filter((b) => b.status === 'pending').length, [bets]);
+
+  const quickActions = [
+    { label: 'Sportsbook', sub: 'Browse fixtures & build a slip', icon: Ticket, to: '/sportsbook', tone: 'text-primary-light bg-primary/10' },
+    { label: 'Log a bet', sub: 'Track a manual bet', icon: Receipt, to: '/betting-log', tone: 'text-secondary-dark bg-secondary/10 dark:text-secondary' },
+    { label: 'AI coach', sub: 'Talk it through', icon: Bot, to: '/coach', tone: 'text-accent bg-accent/10' },
+    { label: 'Risk check', sub: 'Reassess your habits', icon: ClipboardCheck, to: '/risk-assessment', tone: 'text-warning bg-warning/10' },
+    { label: 'Savings', sub: 'Build a cushion', icon: PiggyBank, to: '/savings', tone: 'text-sky-500 bg-sky-500/10' },
+  ];
 
   const recommendations = useMemo(() => {
     const list: { text: string; tone: 'primary' | 'secondary' | 'warning' | 'danger' }[] = [];
@@ -159,6 +179,110 @@ export function Dashboard() {
           tone={riskLevel === 'High' ? 'danger' : riskLevel === 'Medium' ? 'warning' : 'secondary'}
           delay={0.18}
         />
+      </div>
+
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        {quickActions.map((q, i) => (
+          <motion.div
+            key={q.label}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 + i * 0.05 }}
+          >
+            <Link
+              to={q.to}
+              className="glass group flex h-full flex-col justify-between rounded-2xl p-4 transition hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200/60 dark:hover:shadow-black/30"
+            >
+              <span className={`flex size-10 items-center justify-center rounded-xl ${q.tone}`}>
+                <q.icon className="size-5" aria-hidden="true" />
+              </span>
+              <span className="mt-4">
+                <span className="block text-sm font-bold text-ink transition group-hover:text-primary-light dark:text-white">
+                  {q.label}
+                </span>
+                <span className="mt-0.5 block text-[11px] leading-snug text-slate-400">{q.sub}</span>
+              </span>
+            </Link>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
+        <GlassCard hover={false} className="p-5">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Today vs daily limit</p>
+            <Chip tone={todayLimitPct >= 80 ? 'danger' : todayLimitPct >= 50 ? 'warning' : 'secondary'}>
+              {todayLimitPct}%
+            </Chip>
+          </div>
+          <p className="mt-2 font-display text-2xl font-bold text-ink dark:text-white">
+            {formatGHS(todaySpent)}
+            <span className="text-sm font-medium text-slate-400"> / {limits.enabled ? formatGHS(limits.daily) : 'unlimited'}</span>
+          </p>
+          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-200/70 dark:bg-slate-700/60">
+            <motion.div
+              className={`h-full rounded-full ${
+                todayLimitPct >= 80
+                  ? 'bg-gradient-to-r from-danger to-rose-500'
+                  : todayLimitPct >= 50
+                    ? 'bg-gradient-to-r from-warning to-orange-400'
+                    : 'bg-gradient-to-r from-secondary to-emerald-500'
+              }`}
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min(100, todayLimitPct)}%` }}
+              transition={{ duration: 0.9 }}
+            />
+          </div>
+          <p className="mt-2 text-[11px] text-slate-400">
+            {limits.enabled
+              ? formatGHS(Math.max(0, limits.daily - todaySpent)) + ' left before BetGuard steps in'
+              : 'Limits are off — enable them in Settings'}
+          </p>
+        </GlassCard>
+
+        <GlassCard hover={false} className="flex flex-col p-5">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Pending settlement</p>
+            <Activity className="size-4 text-warning" aria-hidden="true" />
+          </div>
+          <p className="mt-2 font-display text-2xl font-bold text-ink dark:text-white">{pendingCount}</p>
+          <p className="mt-1 flex-1 text-[11px] leading-snug text-slate-400">
+            {pendingCount > 0
+              ? 'Sportsbook bets waiting on results. Simulate them to unlock post-bet insights.'
+              : 'No open bets. Head to the sportsbook to place a demo bet.'}
+          </p>
+          <Link
+            to="/sportsbook"
+            className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary-light hover:underline"
+          >
+            Open sportsbook <ArrowRight className="size-3.5" aria-hidden="true" />
+          </Link>
+        </GlassCard>
+
+        <GlassCard hover={false} className="flex flex-col p-5">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Responsible mode</p>
+            {isCooldownActive ? (
+              <Timer className="size-4 text-danger" aria-hidden="true" />
+            ) : (
+              <ShieldCheck className="size-4 text-secondary" aria-hidden="true" />
+            )}
+          </div>
+          <p className="mt-2 font-display text-xl font-bold text-ink dark:text-white">
+            {isCooldownActive ? 'On a betting break' : 'Guard active'}
+          </p>
+          <p className="mt-1 flex-1 text-[11px] leading-snug text-slate-400">
+            {isCooldownActive
+              ? `Breaks until ${cooldownEndsAt ? formatDateShort(cooldownEndsAt) : 'soon'}. BetGuard blocks all bets until then.`
+              : 'Limits, health score and interventions are watching your habits.'}
+          </p>
+          <Link
+            to="/settings"
+            className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-secondary-dark hover:underline dark:text-secondary"
+          >
+            {isCooldownActive ? 'Manage break' : 'Manage limits'} <ArrowRight className="size-3.5" aria-hidden="true" />
+          </Link>
+        </GlassCard>
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">

@@ -251,10 +251,14 @@ export function Sportsbook() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-start gap-3 rounded-2xl bg-primary/[0.04] p-4 text-xs leading-relaxed text-slate-600 dark:bg-primary-light/10 dark:text-slate-300"
+        className="flex items-center gap-2.5 rounded-2xl bg-primary/[0.04] p-2.5 text-[11px] text-slate-600 dark:bg-primary-light/10 dark:text-slate-300 sm:items-start sm:gap-3 sm:p-4 sm:text-xs sm:leading-relaxed"
       >
-        <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary-light" aria-hidden="true" />
-        <p>
+        <ShieldCheck className="size-4 shrink-0 text-primary-light" aria-hidden="true" />
+        <p className="sm:hidden">
+          Practice sportsbook — demo mode, no real money
+          {greenEnabled ? ' · 2% of stakes fund GreenBet' : ''}.
+        </p>
+        <p className="hidden sm:block">
           This is a <strong>practice sportsbook</strong> for learning good habits. Every bet you place is
           logged to your Betting Log and counts towards your monthly budget — so you can experience
           the full betting loop safely, with BetGuard keeping score of your real exposure.

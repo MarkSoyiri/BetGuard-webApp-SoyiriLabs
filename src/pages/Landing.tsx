@@ -14,6 +14,8 @@ import {
   Sparkles,
   CheckCircle2,
   Star,
+  Ticket,
+  ShieldAlert,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -65,6 +67,18 @@ const FEATURES = [
     gradient: 'from-sky-500 to-cyan-600',
   },
   {
+    icon: Ticket,
+    title: 'Demo Sportsbook',
+    text: 'Practise on realistic fixtures with a bet slip, odds and simulated results — no real money, no risk.',
+    gradient: 'from-fuchsia-500 to-purple-700',
+  },
+  {
+    icon: ShieldAlert,
+    title: 'Responsible Limits',
+    text: 'Set daily, weekly and monthly caps. BetGuard blocks overspending and offers betting breaks when you need them.',
+    gradient: 'from-amber-500 to-orange-700',
+  },
+  {
     icon: GraduationCap,
     title: 'Education Center',
     text: 'Learn about probability, gambling addiction and financial literacy in 5 minutes.',
@@ -87,12 +101,12 @@ const STEPS = [
   {
     step: '02',
     title: 'Understand Your Numbers',
-    text: 'See your risk level, budget health and trends on beautiful, easy dashboards.',
+    text: 'See your risk level, health score and budget health on beautiful, easy dashboards.',
   },
   {
     step: '03',
     title: 'Build Healthier Habits',
-    text: 'Set budgets, take challenges and let the AI Coach keep you accountable.',
+    text: 'Set limits, take breaks, settle sportsbook bets and learn from post-bet insights — all backed by your AI Coach.',
   },
 ];
 

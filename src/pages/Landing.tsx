@@ -132,9 +132,9 @@ export function Landing() {
     <div className="relative min-h-screen overflow-x-hidden">
       <div className="pointer-events-none fixed inset-0 -z-10" aria-hidden="true">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.04] via-transparent to-transparent" />
-        <div className="absolute -left-40 top-[-10%] size-[34rem] rounded-full bg-primary/10 blur-[120px]" />
-        <div className="absolute right-[-15%] top-[30%] size-[30rem] rounded-full bg-secondary/10 blur-[120px]" />
-        <div className="absolute bottom-[10%] left-[30%] size-[26rem] rounded-full bg-accent/10 blur-[120px]" />
+        <div className="absolute -left-32 top-[-12%] size-96 rounded-full bg-primary/5 blur-[90px]" />
+        <div className="absolute right-[-10%] top-[32%] size-80 rounded-full bg-secondary/5 blur-[90px]" />
+        <div className="absolute bottom-[8%] left-[28%] size-72 rounded-full bg-accent/5 blur-[90px]" />
       </div>
 
       {/* Landing nav */}
@@ -442,8 +442,8 @@ export function Landing() {
           transition={{ duration: 0.7 }}
           className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-primary via-primary-dark to-secondary p-10 text-center md:p-20"
         >
-          <div className="pointer-events-none absolute -left-20 -top-20 size-72 rounded-full bg-white/10 blur-3xl" aria-hidden="true" />
-          <div className="pointer-events-none absolute -bottom-24 -right-16 size-72 rounded-full bg-accent/20 blur-3xl" aria-hidden="true" />
+          <div className="pointer-events-none absolute -left-20 -top-20 size-72 rounded-full bg-white/[0.06] blur-3xl" aria-hidden="true" />
+          <div className="pointer-events-none absolute -bottom-24 -right-16 size-72 rounded-full bg-accent/10 blur-3xl" aria-hidden="true" />
           <div className="relative mx-auto max-w-2xl">
             <h2 className="font-display text-3xl font-extrabold leading-tight text-white md:text-5xl">
               Your future self will thank you.

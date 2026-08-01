@@ -12,12 +12,12 @@ interface StatCardProps {
 }
 
 const TONES: Record<NonNullable<StatCardProps['tone']>, string> = {
-  primary: 'from-primary to-primary-light text-white shadow-primary/30',
-  secondary: 'from-secondary to-emerald-600 text-white shadow-secondary/30',
-  accent: 'from-accent to-orange-500 text-ink shadow-accent/30',
-  warning: 'from-warning to-orange-600 text-white shadow-warning/30',
-  danger: 'from-danger to-rose-600 text-white shadow-danger/30',
-  slate: 'from-slate-500 to-slate-700 text-white shadow-slate-500/30',
+  primary: 'from-primary to-primary-light text-white shadow-primary/20',
+  secondary: 'from-secondary to-emerald-600 text-white shadow-secondary/20',
+  accent: 'from-accent to-orange-500 text-ink shadow-accent/20',
+  warning: 'from-warning to-orange-600 text-white shadow-warning/20',
+  danger: 'from-danger to-rose-600 text-white shadow-danger/20',
+  slate: 'from-slate-500 to-slate-700 text-white shadow-slate-500/20',
 };
 
 export function StatCard({
@@ -38,7 +38,7 @@ export function StatCard({
       className="glass group relative overflow-hidden rounded-2xl p-5"
     >
       <div
-        className="pointer-events-none absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br opacity-[0.08] blur-xl transition-transform duration-500 group-hover:scale-150"
+        className="pointer-events-none absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br opacity-[0.05] blur-xl transition-transform duration-500 group-hover:scale-150"
         aria-hidden="true"
       />
       <div className="flex items-start justify-between gap-3">

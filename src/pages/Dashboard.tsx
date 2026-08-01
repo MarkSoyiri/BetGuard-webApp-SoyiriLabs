@@ -116,7 +116,7 @@ export function Dashboard() {
         </div>
         <Link
           to="/betting-log"
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary-light px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition hover:shadow-primary/40"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary-light px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/20 transition hover:shadow-primary/30"
         >
           <Plus className="size-4" aria-hidden="true" /> Log a bet
         </Link>

@@ -14,9 +14,9 @@ export function AuthShell({ title, subtitle, children, footer }: AuthShellProps)
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
       <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.06] via-transparent to-secondary/[0.06]" />
-        <div className="absolute -left-32 top-[-15%] size-[30rem] rounded-full bg-primary/10 blur-[120px]" />
-        <div className="absolute -right-32 bottom-[-15%] size-[30rem] rounded-full bg-secondary/10 blur-[120px]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.04] via-transparent to-secondary/[0.04]" />
+        <div className="absolute -left-32 top-[-15%] size-80 rounded-full bg-primary/5 blur-[90px]" />
+        <div className="absolute -right-32 bottom-[-15%] size-80 rounded-full bg-secondary/5 blur-[90px]" />
       </div>
 
       <motion.div

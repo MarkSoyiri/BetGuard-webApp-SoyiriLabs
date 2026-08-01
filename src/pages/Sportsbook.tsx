@@ -22,13 +22,14 @@ import { Input } from '@/components/ui/Input';
 import { Chip } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { PostBetInsight } from '@/components/PostBetInsight';
 import { useSportsbook } from '@/contexts/SportsbookContext';
 import { useBets } from '@/contexts/BetContext';
 import { useBudget } from '@/contexts/BudgetContext';
 import { useLimits } from '@/contexts/LimitsContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { useToast } from '@/contexts/ToastContext';
-import type { LimitCheck, Match, MatchSport, SlipMarket, SlipSelection } from '@/types';
+import type { LimitCheck, Match, MatchSport, SlipMarket, SlipSelection, SportsbookBet } from '@/types';
 import { formatDate, formatGHS, todayISO } from '@/utils/format';
 import { checkBetAgainstLimits, monthlySpending, spentOnDate } from '@/utils/stats';
 
@@ -97,6 +98,10 @@ export function Sportsbook() {
   const [slip, setSlip] = useState<SlipSelection[]>([]);
   const [stake, setStake] = useState('');
   const [block, setBlock] = useState<LimitCheck | null>(null);
+  const [insight, setInsight] = useState<{ open: boolean; slips: SportsbookBet[] }>({
+    open: false,
+    slips: [],
+  });
 
   const monthSpent = useMemo(() => monthlySpending(bets), [bets]);
   const todaySpent = useMemo(() => spentOnDate(bets, todayISO()), [bets]);
@@ -170,9 +175,11 @@ export function Sportsbook() {
   };
 
   const handleSimulate = () => {
-    const settledCount = simulateResults();
-    if (settledCount > 0) toast(`${settledCount} bet${settledCount === 1 ? '' : 's'} settled.`);
-    else toast('Nothing to settle yet — add upcoming bets first.', 'info');
+    const settled = simulateResults();
+    if (settled.length > 0) {
+      toast(`${settled.length} bet${settled.length === 1 ? '' : 's'} settled.`);
+      setInsight({ open: true, slips: settled });
+    } else toast('Nothing to settle yet — add upcoming bets first.', 'info');
   };
 
   const stat = (icon: React.ReactNode, label: string, value: string, sub: string, tone: string) => (
@@ -540,6 +547,12 @@ export function Sportsbook() {
           </div>
         </div>
       </Modal>
+
+      <PostBetInsight
+        open={insight.open}
+        slips={insight.slips}
+        onClose={() => setInsight({ open: false, slips: [] })}
+      />
     </div>
   );
 }

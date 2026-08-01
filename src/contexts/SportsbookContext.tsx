@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, type ReactNode } from 'react';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { generateMatches } from '@/data/matches';
 import { useBets } from './BetContext';
-import type { Match, SlipSelection, SportsbookBet } from '@/types';
+import type { BetOutcome, Match, SlipSelection, SportsbookBet } from '@/types';
 import { todayISO, uid } from '@/utils/format';
 
 interface MatchesStore {
@@ -16,7 +16,7 @@ interface SportsbookContextValue {
   placeBet: (selections: SlipSelection[], stake: number) => SportsbookBet | null;
   removeSlip: (id: string) => void;
   clearSlips: () => void;
-  simulateResults: () => number;
+  simulateResults: () => SportsbookBet[];
 }
 
 const SportsbookContext = createContext<SportsbookContextValue | undefined>(undefined);
@@ -109,11 +109,11 @@ export function SportsbookProvider({ children }: { children: ReactNode }) {
     setSlips([]);
   }, [setSlips]);
 
-  const simulateResults = useCallback((): number => {
+  const simulateResults = useCallback((): SportsbookBet[] => {
     const seed = todayISO();
     const upcoming = matches.filter((m) => m.status === 'upcoming');
     const toFinish = upcoming.slice(0, Math.min(6, upcoming.length));
-    if (toFinish.length === 0) return 0;
+    if (toFinish.length === 0) return [];
 
     const finishedIds = new Set(toFinish.map((m) => m.id));
     const nextMatches = matches.map((m) => {
@@ -122,32 +122,30 @@ export function SportsbookProvider({ children }: { children: ReactNode }) {
       return { ...m, status: 'finished' as const, homeScore: hs, awayScore: as };
     });
 
-    let settled = 0;
+    const newlySettled: SportsbookBet[] = [];
     const nextSlips = slips.map((s) => {
       if (s.status !== 'pending') return s;
       if (!s.selections.every((sel) => finishedIds.has(sel.matchId))) return s;
-      settled += 1;
       const allWon = s.selections.every((sel) => {
         const m = nextMatches.find((x) => x.id === sel.matchId);
         return m ? matchWinner(m) === sel.market : false;
       });
-      return allWon
-        ? { ...s, status: 'won' as const, payout: s.potentialReturn }
-        : { ...s, status: 'lost' as const, payout: 0 };
+      const resolved: SportsbookBet = allWon
+        ? { ...s, status: 'won', payout: s.potentialReturn }
+        : { ...s, status: 'lost', payout: 0 };
+      newlySettled.push(resolved);
+      return resolved;
     });
 
-    if (settled > 0) {
-      nextSlips.forEach((s) => {
-        if (s.status === 'pending') return;
-        const original = slips.find((x) => x.id === s.id);
-        if (original?.status === s.status) return;
-        updateBet(s.betId, { outcome: s.status, status: 'settled' });
+    if (newlySettled.length > 0) {
+      newlySettled.forEach((s) => {
+        updateBet(s.betId, { outcome: s.status as BetOutcome, status: 'settled' });
       });
     }
 
     setStore({ seed, matches: nextMatches });
     setSlips(nextSlips);
-    return settled;
+    return newlySettled;
   }, [matches, slips, setStore, setSlips, updateBet]);
 
   return (

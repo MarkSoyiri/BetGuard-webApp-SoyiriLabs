@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { motion } from 'framer-motion';
 import {
   Settings as SettingsIcon,
@@ -53,6 +53,28 @@ export function Settings() {
   const [limitEnabled, setLimitEnabled] = useState(limits.enabled);
   const [confirmReset, setConfirmReset] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setName(profile?.name ?? '');
+    setEmail(profile?.email ?? '');
+    setOccupation(profile?.occupation ?? '');
+    setAge(String(profile?.age ?? ''));
+    setIncome(String(profile?.monthlyIncome ?? ''));
+    setNotifEnabled(profile?.notificationsEnabled ?? true);
+  }, [profile]);
+
+  useEffect(() => {
+    setBudget(String(monthlyBudget));
+  }, [monthlyBudget]);
+
+  useEffect(() => {
+    setLimitDaily(String(limits.daily));
+    setLimitWeekly(String(limits.weekly));
+    setLimitMonthly(String(limits.monthly));
+    setLimitMaxStake(String(limits.maxStake));
+    setLimitMaxBets(String(limits.maxBetsPerDay));
+    setLimitEnabled(limits.enabled);
+  }, [limits]);
 
   const handleSaveProfile = (e: FormEvent) => {
     e.preventDefault();

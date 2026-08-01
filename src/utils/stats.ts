@@ -1,4 +1,5 @@
-import type { BetRecord, RiskLevel } from '@/types';
+import type { BetRecord, BettingLimits, LimitCheck, RiskLevel } from '@/types';
+import { formatGHS, todayISO } from '@/utils/format';
 
 export interface BetStats {
   total: number;
@@ -117,4 +118,187 @@ export function dateRange(days: number): string[] {
     out.push(d.toISOString().slice(0, 10));
   }
   return out;
+}
+
+export function spentOnDate(bets: BetRecord[], iso: string): number {
+  return bets.filter((b) => b.date === iso).reduce((s, b) => s + b.amount, 0);
+}
+
+export function betsOnDate(bets: BetRecord[], iso: string): number {
+  return bets.filter((b) => b.date === iso).length;
+}
+
+export function spentLastDays(bets: BetRecord[], days: number): number {
+  const start = new Date();
+  start.setDate(start.getDate() - (days - 1));
+  const startISO = start.toISOString().slice(0, 10);
+  return bets
+    .filter((b) => b.date >= startISO)
+    .reduce((s, b) => s + b.amount, 0);
+}
+
+export function checkBetAgainstLimits(
+  bets: BetRecord[],
+  limits: BettingLimits,
+  amount: number,
+  monthlyBudget: number,
+): LimitCheck {
+  if (!limits.enabled) return { ok: true, message: '' };
+
+  if (amount > limits.maxStake) {
+    return {
+      ok: false,
+      kind: 'maxStake',
+      message: `This stake is above your maximum of ${formatGHS(limits.maxStake)} per bet.`,
+      remaining: limits.maxStake,
+    };
+  }
+
+  const today = todayISO();
+  const todaySpent = spentOnDate(bets, today);
+  const todayCount = betsOnDate(bets, today);
+  const weekSpent = spentLastDays(bets, 7);
+  const monthSpent = monthlySpending(bets);
+
+  if (todaySpent + amount > limits.daily) {
+    return {
+      ok: false,
+      kind: 'daily',
+      message: `This bet would take you over your daily limit of ${formatGHS(limits.daily)}.`,
+      remaining: Math.max(0, limits.daily - todaySpent),
+    };
+  }
+
+  if (weekSpent + amount > limits.weekly) {
+    return {
+      ok: false,
+      kind: 'weekly',
+      message: `This bet would take you over your weekly limit of ${formatGHS(limits.weekly)}.`,
+      remaining: Math.max(0, limits.weekly - weekSpent),
+    };
+  }
+
+  if (monthSpent + amount > limits.monthly) {
+    return {
+      ok: false,
+      kind: 'monthly',
+      message: `This bet would take you over your monthly limit of ${formatGHS(limits.monthly)}.`,
+      remaining: Math.max(0, limits.monthly - monthSpent),
+    };
+  }
+
+  if (monthlyBudget > 0 && monthSpent + amount > monthlyBudget) {
+    return {
+      ok: false,
+      kind: 'budget',
+      message: `This bet would push you over your monthly budget of ${formatGHS(monthlyBudget)}.`,
+      remaining: Math.max(0, monthlyBudget - monthSpent),
+    };
+  }
+
+  if (todayCount + 1 > limits.maxBetsPerDay) {
+    return {
+      ok: false,
+      kind: 'maxBets',
+      message: `You have reached your limit of ${limits.maxBetsPerDay} bets per day.`,
+    };
+  }
+
+  return { ok: true, message: '' };
+}
+
+export interface HealthFactor {
+  label: string;
+  detail: string;
+  status: 'good' | 'ok' | 'poor';
+}
+
+export interface HealthScore {
+  score: number;
+  level: RiskLevel;
+  factors: HealthFactor[];
+}
+
+export function computeHealthScore(
+  bets: BetRecord[],
+  monthlyBudget: number,
+  limits: BettingLimits,
+): HealthScore {
+  const factors: HealthFactor[] = [];
+  let score = 100;
+
+  const monthSpent = monthlySpending(bets);
+  const budgetPct = monthlyBudget > 0 ? monthSpent / monthlyBudget : 0;
+  if (budgetPct >= 1) {
+    score -= 30;
+    factors.push({
+      label: 'Budget',
+      detail: `Used ${Math.round(budgetPct * 100)}% of your monthly budget`,
+      status: 'poor',
+    });
+  } else if (budgetPct >= 0.8) {
+    score -= 14;
+    factors.push({ label: 'Budget', detail: 'Close to your monthly budget', status: 'ok' });
+  } else {
+    factors.push({ label: 'Budget', detail: 'Pacing well within your budget', status: 'good' });
+  }
+
+  const today = todayISO();
+  const start = new Date();
+  start.setDate(start.getDate() - 29);
+  const startISO = start.toISOString().slice(0, 10);
+  const recent = bets.filter((b) => b.date >= startISO && b.date <= today);
+  const perDay = recent.length / 30;
+
+  if (perDay > 2) {
+    score -= 12;
+    factors.push({ label: 'Frequency', detail: `${perDay.toFixed(1)} bets per day on average`, status: 'poor' });
+  } else if (perDay > 0.8) {
+    score -= 4;
+    factors.push({ label: 'Frequency', detail: `${perDay.toFixed(1)} bets per day on average`, status: 'ok' });
+  } else {
+    factors.push({ label: 'Frequency', detail: `${perDay.toFixed(1)} bets per day on average`, status: 'good' });
+  }
+
+  const avgStake = recent.length > 0 ? recent.reduce((s, b) => s + b.amount, 0) / recent.length : 0;
+  if (monthlyBudget > 0) {
+    if (avgStake > monthlyBudget * 0.25) {
+      score -= 10;
+      factors.push({ label: 'Stake size', detail: `Average stake ${formatGHS(Math.round(avgStake))} is large`, status: 'poor' });
+    } else if (avgStake > monthlyBudget * 0.1) {
+      score -= 4;
+      factors.push({ label: 'Stake size', detail: `Average stake ${formatGHS(Math.round(avgStake))}`, status: 'ok' });
+    } else {
+      factors.push({ label: 'Stake size', detail: `Average stake ${formatGHS(Math.round(avgStake))} is modest`, status: 'good' });
+    }
+  }
+
+  const newestFirst = [...bets].sort((a, b) => b.date.localeCompare(a.date));
+  let chasing = 0;
+  for (let i = 0; i < newestFirst.length - 1; i += 1) {
+    if (newestFirst[i].outcome === 'lost' && newestFirst[i + 1].amount >= newestFirst[i].amount * 1.5) {
+      chasing += 1;
+    }
+  }
+  if (chasing > 0) {
+    score -= 8;
+    factors.push({
+      label: 'Loss chasing',
+      detail: `${chasing} bet${chasing === 1 ? '' : 's'} increased right after a loss`,
+      status: 'ok',
+    });
+  } else {
+    factors.push({ label: 'Loss chasing', detail: 'No signs of chasing losses', status: 'good' });
+  }
+
+  if (recent.length === 0) {
+    score += 5;
+    factors.push({ label: 'Breaks', detail: 'No bets in the last 30 days', status: 'good' });
+  } else if (limits.enabled) {
+    factors.push({ label: 'Limits', detail: 'Limits are enabled and enforced', status: 'good' });
+  }
+
+  const final = Math.max(0, Math.min(100, Math.round(score)));
+  const level: RiskLevel = final >= 70 ? 'Low' : final >= 45 ? 'Medium' : 'High';
+  return { score: final, level, factors };
 }

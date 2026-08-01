@@ -65,6 +65,25 @@ export interface SportsbookBet {
   payout?: number;
 }
 
+export interface BettingLimits {
+  daily: number;
+  weekly: number;
+  monthly: number;
+  maxStake: number;
+  maxBetsPerDay: number;
+  enabled: boolean;
+  cooldownUntil: string | null;
+}
+
+export type LimitKind = 'maxStake' | 'daily' | 'weekly' | 'monthly' | 'maxBets' | 'budget';
+
+export interface LimitCheck {
+  ok: boolean;
+  kind?: LimitKind;
+  message: string;
+  remaining?: number;
+}
+
 export interface SavingsGoal {
   id: string;
   name: string;

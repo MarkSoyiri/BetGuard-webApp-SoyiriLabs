@@ -11,6 +11,9 @@ import {
   RotateCcw,
   Save,
   Palette,
+  ShieldCheck,
+  Timer,
+  ShieldAlert,
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageTransition';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -20,14 +23,16 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useUser } from '@/contexts/UserContext';
 import { useBudget } from '@/contexts/BudgetContext';
+import { useLimits } from '@/contexts/LimitsContext';
 import { useToast } from '@/contexts/ToastContext';
 import { clearAllStorage, exportAllStorage, importAllStorage } from '@/utils/storage';
-import { formatGHS } from '@/utils/format';
+import { formatDate, formatGHS } from '@/utils/format';
 
 export function Settings() {
   const { theme, toggleTheme } = useTheme();
   const { profile, updateProfile } = useUser();
   const { monthlyBudget, setMonthlyBudget } = useBudget();
+  const { limits, setLimits, startCooldown, cancelCooldown, isCooldownActive, cooldownEndsAt } = useLimits();
   const { toast } = useToast();
 
   const [name, setName] = useState(profile?.name ?? '');
@@ -37,6 +42,12 @@ export function Settings() {
   const [income, setIncome] = useState(String(profile?.monthlyIncome ?? ''));
   const [budget, setBudget] = useState(String(monthlyBudget));
   const [notifEnabled, setNotifEnabled] = useState(profile?.notificationsEnabled ?? true);
+  const [limitDaily, setLimitDaily] = useState(String(limits.daily));
+  const [limitWeekly, setLimitWeekly] = useState(String(limits.weekly));
+  const [limitMonthly, setLimitMonthly] = useState(String(limits.monthly));
+  const [limitMaxStake, setLimitMaxStake] = useState(String(limits.maxStake));
+  const [limitMaxBets, setLimitMaxBets] = useState(String(limits.maxBetsPerDay));
+  const [limitEnabled, setLimitEnabled] = useState(limits.enabled);
   const [confirmReset, setConfirmReset] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -101,6 +112,38 @@ export function Settings() {
   const toggle = (checked: boolean) => {
     setNotifEnabled(checked);
     toast(checked ? 'Notifications enabled.' : 'Notifications disabled.', 'info');
+  };
+
+  const toggleLimits = (checked: boolean) => {
+    setLimitEnabled(checked);
+    toast(checked ? 'Limits will be enforced.' : 'Limits disabled.', 'info');
+  };
+
+  const num = (v: string) => {
+    const n = Number(v);
+    return Number.isNaN(n) || n < 0 ? 0 : Math.round(n);
+  };
+
+  const handleSaveLimits = () => {
+    setLimits({
+      daily: num(limitDaily),
+      weekly: num(limitWeekly),
+      monthly: num(limitMonthly),
+      maxStake: num(limitMaxStake),
+      maxBetsPerDay: num(limitMaxBets),
+      enabled: limitEnabled,
+    });
+    toast('Responsible limits saved.');
+  };
+
+  const handleStartCooldown = (days: number) => {
+    const until = startCooldown(days);
+    toast(`Betting break started until ${formatDate(until)}.`, 'info');
+  };
+
+  const handleCancelCooldown = () => {
+    cancelCooldown();
+    toast('Betting break cancelled.', 'info');
   };
 
   return (
@@ -194,6 +237,113 @@ export function Settings() {
             </div>
             <Button type="submit" icon={<Save className="size-4" aria-hidden="true" />}>Save changes</Button>
           </form>
+        </GlassCard>
+
+        <GlassCard className="p-6">
+          <h3 className="mb-4 flex items-center gap-2 font-display text-base font-bold text-ink dark:text-white">
+            <ShieldCheck className="size-5 text-primary-light" aria-hidden="true" /> Responsible limits
+          </h3>
+
+          <button
+            onClick={() => toggleLimits(!limitEnabled)}
+            className="flex w-full items-center justify-between rounded-2xl border border-slate-200 p-4 transition hover:border-primary-light dark:border-slate-700"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <ShieldCheck className="size-5" aria-hidden="true" />
+              </div>
+              <div className="min-w-0 flex-1 text-left">
+                <p className="text-sm font-bold text-ink dark:text-white">Enforce betting limits</p>
+                <p className="text-xs text-slate-400">BetGuard blocks any bet that would break a limit</p>
+              </div>
+            </div>
+            <span
+              className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${limitEnabled ? 'bg-secondary' : 'bg-slate-300'}`}
+              aria-hidden="true"
+            >
+              <motion.span
+                layout
+                transition={{ type: 'spring', stiffness: 500, damping: 32 }}
+                className={`absolute top-1 size-5 rounded-full bg-white shadow ${limitEnabled ? 'right-1' : 'left-1'}`}
+              />
+            </span>
+          </button>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <Input label="Daily limit (GH₵)" type="number" min="0" value={limitDaily} onChange={(e) => setLimitDaily(e.target.value)} />
+            <Input label="Weekly limit (GH₵)" type="number" min="0" value={limitWeekly} onChange={(e) => setLimitWeekly(e.target.value)} />
+            <Input label="Monthly limit (GH₵)" type="number" min="0" value={limitMonthly} onChange={(e) => setLimitMonthly(e.target.value)} />
+            <Input label="Max stake per bet (GH₵)" type="number" min="0" value={limitMaxStake} onChange={(e) => setLimitMaxStake(e.target.value)} />
+            <Input label="Max bets per day" type="number" min="0" value={limitMaxBets} onChange={(e) => setLimitMaxBets(e.target.value)} />
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <Button onClick={handleSaveLimits} icon={<Save className="size-4" aria-hidden="true" />}>
+              Save limits
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setLimitDaily(String(150));
+                setLimitWeekly(String(350));
+                setLimitMonthly(String(600));
+                setLimitMaxStake(String(80));
+                setLimitMaxBets(String(5));
+                setLimitEnabled(true);
+                toast('Limits reset to recommended values.');
+              }}
+            >
+              Reset to recommended
+            </Button>
+          </div>
+          <p className="mt-3 text-xs leading-relaxed text-slate-400">
+            Recommended: daily {formatGHS(150)}, weekly {formatGHS(350)}, monthly {formatGHS(600)},
+            max stake {formatGHS(80)}, up to 5 bets a day. These match a responsible share of an
+            average monthly betting budget.
+          </p>
+        </GlassCard>
+
+        <GlassCard className="p-6">
+          <h3 className="mb-4 flex items-center gap-2 font-display text-base font-bold text-ink dark:text-white">
+            <Timer className="size-5 text-primary-light" aria-hidden="true" /> Take a betting break
+          </h3>
+          {isCooldownActive ? (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-start gap-3 rounded-2xl bg-warning/10 p-4">
+                <ShieldAlert className="mt-0.5 size-5 shrink-0 text-orange-600 dark:text-warning" aria-hidden="true" />
+                <div className="text-sm">
+                  <p className="font-bold text-orange-700 dark:text-warning">You are on a betting break</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+                    BetGuard has paused sportsbook betting until <strong>{formatDate(cooldownEndsAt ?? '')}</strong>.
+                    Use this time to rest, review your numbers, or talk to your AI coach.
+                  </p>
+                </div>
+              </div>
+              <div>
+                <Button variant="outline" onClick={handleCancelCooldown} icon={<Timer className="size-4" aria-hidden="true" />}>
+                  End break early
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p className="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                A betting break pauses all sportsbook bets for a set period — a powerful way to reset
+                after a rough streak or before a big event.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {[
+                  { days: 1, label: '1 day' },
+                  { days: 3, label: '3 days' },
+                  { days: 7, label: '1 week' },
+                  { days: 30, label: '1 month' },
+                ].map((o) => (
+                  <Button key={o.days} variant="outline" size="sm" onClick={() => handleStartCooldown(o.days)}>
+                    {o.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
         </GlassCard>
 
         <GlassCard className="p-6">

@@ -5,6 +5,7 @@ import {
   Clock,
   Flame,
   ShieldCheck,
+  ShieldAlert,
   AlertTriangle,
   Wallet,
   TrendingUp,
@@ -19,14 +20,17 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Chip } from '@/components/ui/Badge';
+import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useSportsbook } from '@/contexts/SportsbookContext';
 import { useBets } from '@/contexts/BetContext';
 import { useBudget } from '@/contexts/BudgetContext';
+import { useLimits } from '@/contexts/LimitsContext';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { useToast } from '@/contexts/ToastContext';
-import type { Match, MatchSport, SlipMarket, SlipSelection } from '@/types';
-import { formatDate, formatGHS } from '@/utils/format';
-import { monthlySpending } from '@/utils/stats';
+import type { LimitCheck, Match, MatchSport, SlipMarket, SlipSelection } from '@/types';
+import { formatDate, formatGHS, todayISO } from '@/utils/format';
+import { checkBetAgainstLimits, monthlySpending, spentOnDate } from '@/utils/stats';
 
 type SportTab = 'All' | MatchSport;
 
@@ -85,13 +89,22 @@ export function Sportsbook() {
   const { matches, slips, placeBet, removeSlip, clearSlips, simulateResults } = useSportsbook();
   const { bets } = useBets();
   const { monthlyBudget } = useBudget();
+  const { limits, isCooldownActive, cooldownEndsAt } = useLimits();
+  const { addNotification } = useNotifications();
   const { toast } = useToast();
 
   const [tab, setTab] = useState<SportTab>('All');
   const [slip, setSlip] = useState<SlipSelection[]>([]);
   const [stake, setStake] = useState('');
+  const [block, setBlock] = useState<LimitCheck | null>(null);
 
   const monthSpent = useMemo(() => monthlySpending(bets), [bets]);
+  const todaySpent = useMemo(() => spentOnDate(bets, todayISO()), [bets]);
+  const todayCount = useMemo(
+    () => bets.filter((b) => b.date === todayISO()).length,
+    [bets],
+  );
+  const dailyPct = limits.daily > 0 ? Math.min(100, Math.round((todaySpent / limits.daily) * 100)) : 0;
 
   const visible = useMemo(
     () => matches.filter((m) => tab === 'All' || m.sport === tab),
@@ -134,6 +147,20 @@ export function Sportsbook() {
     }
     if (!stakeNum || stakeNum < 1) {
       toast('Enter a stake of at least GH₵ 1.', 'warning');
+      return;
+    }
+    if (isCooldownActive) {
+      toast('You are on a betting break — placing is paused.', 'warning');
+      return;
+    }
+    const check = checkBetAgainstLimits(bets, limits, stakeNum, monthlyBudget);
+    if (!check.ok) {
+      setBlock(check);
+      addNotification(
+        'Bet blocked — limit reached',
+        check.message,
+        'warning',
+      );
       return;
     }
     placeBet(slip, round2(stakeNum));
@@ -183,6 +210,23 @@ export function Sportsbook() {
           the full betting loop safely, with BetGuard keeping score of your real exposure.
         </p>
       </motion.div>
+
+      {isCooldownActive && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-warning/10 p-4"
+        >
+          <div className="flex items-start gap-3 text-xs leading-relaxed text-orange-700 dark:text-warning">
+            <ShieldAlert className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+            <p>
+              <strong>You are on a betting break</strong> until{' '}
+              <strong>{formatDate(cooldownEndsAt ?? '')}</strong>. Betting is paused — a great time
+              to check your numbers or talk to your AI coach.
+            </p>
+          </div>
+        </motion.div>
+      )}
 
       <div className="mt-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
         {stat(<Ticket className="size-4 text-primary-light" aria-hidden="true" />, 'Active slips', String(pendingCount), 'awaiting settlement', 'text-primary-light')}
@@ -345,8 +389,34 @@ export function Sportsbook() {
                   </div>
                 )}
 
-                <Button fullWidth className="mt-4" icon={<Zap className="size-4" aria-hidden="true" />} onClick={handlePlace}>
-                  Place demo bet
+                {limits.enabled && (
+                  <div className="mt-3 space-y-1 text-[11px] text-slate-400">
+                    <div className="flex items-center justify-between">
+                      <span>Today</span>
+                      <span className="font-semibold text-slate-600 dark:text-slate-300">
+                        {formatGHS(todaySpent)} of {formatGHS(limits.daily)}
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200/70 dark:bg-slate-700/60">
+                      <div
+                        className={`h-full rounded-full transition-all ${dailyPct >= 80 ? 'bg-danger' : dailyPct >= 50 ? 'bg-warning' : 'bg-secondary'}`}
+                        style={{ width: `${dailyPct}%` }}
+                      />
+                    </div>
+                    <p className="text-right">
+                      {todayCount}/{limits.maxBetsPerDay} bets today
+                    </p>
+                  </div>
+                )}
+
+                <Button
+                  fullWidth
+                  className="mt-4"
+                  disabled={isCooldownActive}
+                  icon={<Zap className="size-4" aria-hidden="true" />}
+                  onClick={handlePlace}
+                >
+                  {isCooldownActive ? 'Betting paused' : 'Place demo bet'}
                 </Button>
 
                 <p className="mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-slate-400">
@@ -440,6 +510,36 @@ export function Sportsbook() {
           </ul>
         )}
       </GlassCard>
+
+      <Modal
+        open={block !== null}
+        onClose={() => setBlock(null)}
+        title="Bet not placed"
+        subtitle="This is BetGuard looking out for you."
+      >
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="flex size-14 items-center justify-center rounded-2xl bg-warning/15 text-orange-600 dark:text-warning">
+            <ShieldAlert className="size-7" aria-hidden="true" />
+          </div>
+          <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+            {block?.message}
+          </p>
+          {block?.remaining != null && (
+            <p className="rounded-xl bg-secondary/10 px-3 py-1.5 text-xs font-semibold text-secondary-dark dark:text-secondary">
+              You can still stake up to {formatGHS(block.remaining)} this period
+            </p>
+          )}
+          <div className="grid w-full gap-2">
+            <Button fullWidth onClick={() => setBlock(null)}>Lower my stake</Button>
+            <Button fullWidth to="/coach" variant="outline" onClick={() => setBlock(null)}>
+              Talk to my AI coach
+            </Button>
+            <Button fullWidth to="/education" variant="ghost" onClick={() => setBlock(null)}>
+              Learn about limits
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

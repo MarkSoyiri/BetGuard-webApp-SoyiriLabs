@@ -32,21 +32,24 @@ import { useBets } from '@/contexts/BetContext';
 import { useBudget } from '@/contexts/BudgetContext';
 import { useGoals } from '@/contexts/GoalContext';
 import { useUser } from '@/contexts/UserContext';
+import { useLimits } from '@/contexts/LimitsContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { greeting, formatGHS, formatDateShort, timeAgo, monthLabel } from '@/utils/format';
-import { computeStats, budgetStatus, monthlySpending, dateRange } from '@/utils/stats';
+import { computeStats, budgetStatus, monthlySpending, dateRange, computeHealthScore } from '@/utils/stats';
 import { ChartTooltip, AXIS_TICK, gridStyle, COLORS } from '@/components/charts/chartUtils';
 
 export function Dashboard() {
   const { profile } = useUser();
   const { bets } = useBets();
   const { monthlyBudget } = useBudget();
+  const { limits } = useLimits();
   const { goals } = useGoals();
   const { notifications } = useNotifications();
   const navigate = useNavigate();
 
   const stats = useMemo(() => computeStats(bets), [bets]);
   const monthSpent = useMemo(() => monthlySpending(bets), [bets]);
+  const health = useMemo(() => computeHealthScore(bets, monthlyBudget, limits), [bets, monthlyBudget, limits]);
   const remaining = Math.max(0, monthlyBudget - monthSpent);
   const status = budgetStatus(monthSpent, monthlyBudget);
   const savingsTotal = goals.reduce((s, g) => s + g.current, 0);
@@ -78,8 +81,8 @@ export function Dashboard() {
 
   const recent = bets.slice(0, 5);
   const latestNotifications = notifications.slice(0, 4);
-  const riskScore = 100 - Math.min(100, Math.round((monthSpent / Math.max(1, monthlyBudget)) * 40));
-  const riskLevel = profile?.riskLevel ?? (riskScore > 65 ? 'Low' : riskScore > 40 ? 'Medium' : 'High');
+  const riskScore = health.score;
+  const riskLevel = profile?.riskLevel ?? health.level;
 
   const savingsPct = savingsTarget > 0 ? Math.round((savingsTotal / savingsTarget) * 100) : 0;
 
@@ -336,7 +339,7 @@ export function Dashboard() {
             </ul>
           </ChartCard>
         </div>
-        <RiskCard level={riskLevel} score={Math.max(5, Math.min(95, riskScore))} />
+        <RiskCard level={riskLevel} score={Math.max(5, Math.min(95, riskScore))} factors={health.factors} />
       </div>
     </div>
   );

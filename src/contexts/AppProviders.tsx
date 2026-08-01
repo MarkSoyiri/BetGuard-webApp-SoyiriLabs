@@ -4,6 +4,7 @@ import { UserProvider } from './UserContext';
 import { BetProvider } from './BetContext';
 import { SportsbookProvider } from './SportsbookContext';
 import { BudgetProvider } from './BudgetContext';
+import { LimitsProvider } from './LimitsContext';
 import { GoalProvider } from './GoalContext';
 import { NotificationProvider } from './NotificationContext';
 import { CommunityProvider } from './CommunityContext';
@@ -18,13 +19,15 @@ export function AppProviders({ children }: { children: ReactNode }) {
           <BudgetProvider>
             <BetProvider>
               <SportsbookProvider>
-                <GoalProvider>
-                  <AchievementProvider>
-                    <NotificationProvider>
-                      <CommunityProvider>{children}</CommunityProvider>
-                    </NotificationProvider>
-                  </AchievementProvider>
-                </GoalProvider>
+                <LimitsProvider>
+                  <GoalProvider>
+                    <AchievementProvider>
+                      <NotificationProvider>
+                        <CommunityProvider>{children}</CommunityProvider>
+                      </NotificationProvider>
+                    </AchievementProvider>
+                  </GoalProvider>
+                </LimitsProvider>
               </SportsbookProvider>
             </BetProvider>
           </BudgetProvider>

@@ -4,10 +4,17 @@ import type { RiskLevel } from '@/types';
 import { riskColor } from '@/utils/stats';
 import { CircularGauge } from './CircularGauge';
 
+export interface HealthFactorItem {
+  label: string;
+  detail: string;
+  status: 'good' | 'ok' | 'poor';
+}
+
 interface RiskCardProps {
   level: RiskLevel;
   score: number;
   compact?: boolean;
+  factors?: HealthFactorItem[];
 }
 
 const META: Record<RiskLevel, { label: string; text: string; icon: typeof ShieldCheck }> = {
@@ -28,7 +35,13 @@ const META: Record<RiskLevel, { label: string; text: string; icon: typeof Shield
   },
 };
 
-export function RiskCard({ level, score, compact }: RiskCardProps) {
+const FACTOR_DOT: Record<HealthFactorItem['status'], string> = {
+  good: 'bg-secondary',
+  ok: 'bg-warning',
+  poor: 'bg-danger',
+};
+
+export function RiskCard({ level, score, compact, factors }: RiskCardProps) {
   const meta = META[level];
   const Icon = meta.icon;
   const color = riskColor(level);
@@ -56,6 +69,19 @@ export function RiskCard({ level, score, compact }: RiskCardProps) {
       <p className="mt-3 max-w-xs text-sm leading-relaxed text-slate-500 dark:text-slate-400">
         {meta.text}
       </p>
+      {factors && factors.length > 0 && (
+        <ul className="mt-5 w-full space-y-2 text-left">
+          {factors.slice(0, 4).map((f) => (
+            <li key={f.label} className="flex items-start gap-2">
+              <span className={`mt-1.5 size-2 shrink-0 rounded-full ${FACTOR_DOT[f.status]}`} aria-hidden="true" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold text-ink dark:text-white">{f.label}</p>
+                <p className="text-[11px] leading-snug text-slate-400">{f.detail}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </motion.div>
   );
 }

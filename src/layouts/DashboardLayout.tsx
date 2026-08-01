@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Navbar } from '@/components/layout/Navbar';
+import { PageContentLoader } from '@/components/ui/PageLoader';
+import { prefetchAllPages } from '@/utils/pagePrefetch';
 import { useUser } from '@/contexts/UserContext';
 
 export function DashboardLayout() {
@@ -10,6 +12,11 @@ export function DashboardLayout() {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    const t = window.setTimeout(prefetchAllPages, 1200);
+    return () => window.clearTimeout(t);
+  }, []);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
@@ -34,7 +41,9 @@ export function DashboardLayout() {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             >
-              <Outlet />
+              <Suspense fallback={<PageContentLoader />}>
+                <Outlet />
+              </Suspense>
             </motion.div>
           </AnimatePresence>
         </main>

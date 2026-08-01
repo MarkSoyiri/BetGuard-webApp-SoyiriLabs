@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShieldCheck, LogOut, ChevronsLeft, ChevronsRight, Sparkles } from 'lucide-react';
 import { ADMIN_ITEM, NAV_SECTIONS } from './nav';
+import { prefetchPage } from '@/utils/pagePrefetch';
 import { useUser } from '@/contexts/UserContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -78,6 +79,7 @@ function SidebarContent({
                     <NavLink
                       to={item.path}
                       onClick={onNavigate}
+                      onMouseEnter={() => prefetchPage(item.path)}
                       className={({ isActive }) =>
                         `group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                           isActive
@@ -131,6 +133,7 @@ function SidebarContent({
             <NavLink
               to={ADMIN_ITEM.path}
               onClick={onNavigate}
+              onMouseEnter={() => prefetchPage(ADMIN_ITEM.path)}
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                   isActive

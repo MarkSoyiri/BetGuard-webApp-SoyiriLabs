@@ -32,6 +32,7 @@ import { useLimits } from '@/contexts/LimitsContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useGreenBet } from '@/contexts/GreenBetContext';
+import { useChallenges } from '@/contexts/ChallengeContext';
 import type { LimitCheck, Match, MatchSport, SlipMarket, SlipSelection, SportsbookBet } from '@/types';
 import { formatDate, formatGHS, todayISO } from '@/utils/format';
 import { checkBetAgainstLimits, monthlySpending, spentOnDate } from '@/utils/stats';
@@ -97,6 +98,7 @@ export function Sportsbook() {
   const { addNotification } = useNotifications();
   const { toast } = useToast();
   const { enabled: greenEnabled, recordContribution } = useGreenBet();
+  const { recordIntervention } = useChallenges();
 
   const [tab, setTab] = useState<SportTab>('All');
   const [slip, setSlip] = useState<SlipSelection[]>([]);
@@ -120,9 +122,11 @@ export function Sportsbook() {
   }, [matches]);
 
   const untilRefresh = Math.max(0, new Date(nextRefreshAt).getTime() - now);
-  const refreshM = Math.floor(untilRefresh / 60_000);
+  const refreshH = Math.floor(untilRefresh / 3_600_000);
+  const refreshM = Math.floor((untilRefresh % 3_600_000) / 60_000);
   const refreshS = Math.floor((untilRefresh % 60_000) / 1000);
-  const refreshLabel = untilRefresh <= 0 ? 'Refreshing now' : `New fixtures in ${refreshM}m ${refreshS}s`;
+  const refreshLabel =
+    untilRefresh <= 0 ? 'Refreshing now' : `New fixtures in ${refreshH > 0 ? `${refreshH}h ` : ''}${refreshM}m ${refreshS}s`;
 
   const monthSpent = useMemo(() => monthlySpending(bets), [bets]);
   const todaySpent = useMemo(() => spentOnDate(bets, todayISO()), [bets]);
@@ -186,6 +190,7 @@ export function Sportsbook() {
     const check = checkBetAgainstLimits(bets, limits, stakeNum, monthlyBudget);
     if (!check.ok) {
       setBlock(check);
+      recordIntervention();
       addNotification(
         'Bet blocked — limit reached',
         check.message,

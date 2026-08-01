@@ -24,7 +24,7 @@ const SportsbookContext = createContext<SportsbookContextValue | undefined>(unde
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
-const CYCLE_MS = 5 * 60 * 1000;
+const CYCLE_MS = 60 * 60 * 1000;
 
 function cycleStart(now = Date.now()): number {
   return Math.floor(now / CYCLE_MS) * CYCLE_MS;

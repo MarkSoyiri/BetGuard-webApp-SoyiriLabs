@@ -3,7 +3,6 @@ import type {
   AppNotification,
   Article,
   BetRecord,
-  Challenge,
   CommunityPost,
   GreenProject,
   SavingsGoal,
@@ -58,23 +57,6 @@ export function sampleGoals(): SavingsGoal[] {
     { id: 'goal-emergency', name: 'Emergency Fund', target: 5000, current: 3200, deadline: deadline(120), createdAt: daysAgoISO(40) },
     { id: 'goal-phone', name: 'New Phone', target: 3500, current: 1250, deadline: deadline(90), createdAt: daysAgoISO(60) },
     { id: 'goal-trip', name: 'Weekend Trip to Cape Coast', target: 1800, current: 600, deadline: deadline(45), createdAt: daysAgoISO(25) },
-  ];
-}
-
-export function sampleChallenges(): Challenge[] {
-  return [
-    { id: 'ch-no-bet', title: 'No Bet Today', description: 'Enjoy a full day without placing any bet.', frequency: 'Daily', target: 1, progress: 1, unit: 'day', reward: 'Fresh Start Badge', completed: true, claimed: false },
-    { id: 'ch-save-20', title: 'Save GH₵20', description: 'Transfer GH₵20 to a savings goal instead of betting.', frequency: 'Daily', target: 1, progress: 0, unit: 'deposit', reward: 'Penny Saver Badge', completed: false, claimed: false },
-    { id: 'ch-track-week', title: 'Track Every Bet', description: 'Log every single bet you place for one week.', frequency: 'Weekly', target: 7, progress: 4, unit: 'days tracked', reward: 'Discipline Badge', completed: false, claimed: false },
-    { id: 'ch-7-day', title: '7-Day Challenge', description: 'No bets for 7 consecutive days.', frequency: 'Weekly', target: 7, progress: 3, unit: 'days', reward: 'Week Warrior Badge', completed: false, claimed: false },
-    { id: 'ch-lower-30', title: 'Cut Spending 30%', description: 'Spend 30% less on betting this month.', frequency: 'Monthly', target: 30, progress: 18, unit: '% reduced', reward: 'Money Master Badge', completed: false, claimed: false },
-    { id: 'ch-30-day', title: '30-Day Challenge', description: 'A whole month of healthy betting habits.', frequency: 'Monthly', target: 30, progress: 11, unit: 'days', reward: 'Guardian Badge', completed: false, claimed: false },
-    { id: 'ch-green-tree', title: 'Plant a Tree', description: 'Plant a tree in your community or garden.', frequency: 'Weekly', target: 1, progress: 0, unit: 'tree', reward: 'Tree Planter', completed: false, claimed: false, category: 'environmental', points: 40 },
-    { id: 'ch-green-recycle', title: 'Recycle for Seven Days', description: 'Sort and recycle your waste for seven consecutive days.', frequency: 'Weekly', target: 7, progress: 0, unit: 'days', reward: 'Recycler', completed: false, claimed: false, category: 'environmental', points: 60 },
-    { id: 'ch-green-water', title: 'Save Water', description: 'Keep showers short and fix that leaking tap.', frequency: 'Daily', target: 1, progress: 0, unit: 'day', reward: 'Water Saver', completed: false, claimed: false, category: 'environmental', points: 20 },
-    { id: 'ch-green-walk', title: 'Walk Instead of Drive', description: 'Walk or cycle five short trips instead of driving.', frequency: 'Weekly', target: 5, progress: 0, unit: 'trips', reward: 'Eco Walker', completed: false, claimed: false, category: 'environmental', points: 40 },
-    { id: 'ch-green-cleanup', title: 'Community Clean-up', description: 'Join or organise a clean-up of a local park or beach.', frequency: 'Monthly', target: 1, progress: 0, unit: 'clean-up', reward: 'Clean-up Hero', completed: false, claimed: false, category: 'environmental', points: 80 },
-    { id: 'ch-green-garden', title: 'Start a Home Garden', description: 'Start a small herb or vegetable garden at home.', frequency: 'Monthly', target: 1, progress: 0, unit: 'garden', reward: 'Home Gardener', completed: false, claimed: false, category: 'environmental', points: 80 },
   ];
 }
 
@@ -434,4 +416,5 @@ export const AI_COACH_QUICK_QUESTIONS = [
   'What should I do after a big loss?',
   'How do I set a healthy budget?',
   'How is my betting helping the planet?',
+  'Which challenge should I focus on?',
 ];

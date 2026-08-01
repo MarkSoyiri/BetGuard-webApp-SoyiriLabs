@@ -18,10 +18,10 @@ interface ToastContextValue {
 const ToastContext = createContext<ToastContextValue | undefined>(undefined);
 
 const ICONS: Record<ToastType, ReactNode> = {
-  success: <CheckCircle2 className="size-5 text-secondary" />,
-  error: <XCircle className="size-5 text-danger" />,
-  warning: <AlertTriangle className="size-5 text-warning" />,
-  info: <Info className="size-5 text-primary-light" />,
+  success: <CheckCircle2 className="size-4 text-secondary sm:size-5" />,
+  error: <XCircle className="size-4 text-danger sm:size-5" />,
+  warning: <AlertTriangle className="size-4 text-warning sm:size-5" />,
+  info: <Info className="size-4 text-primary-light sm:size-5" />,
 };
 
 const BARS: Record<ToastType, string> = {
@@ -56,7 +56,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ toast }}>
       {children}
       <div
-        className="pointer-events-none fixed right-4 top-4 z-[100] flex w-[calc(100vw-2rem)] max-w-sm flex-col gap-3"
+        className="pointer-events-none fixed right-2 top-2 z-[100] flex w-[calc(100vw-1rem)] max-w-sm flex-col gap-2 sm:right-4 sm:top-4 sm:w-[calc(100vw-2rem)] sm:gap-3"
         role="status"
         aria-live="polite"
       >
@@ -69,20 +69,22 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 60, scale: 0.9 }}
               transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-              className="glass-strong pointer-events-auto relative flex items-center gap-2.5 overflow-hidden rounded-2xl p-3 pr-9 sm:gap-3 sm:p-4 sm:pr-10"
+              className="glass-strong pointer-events-auto relative flex items-center gap-2 overflow-hidden rounded-xl p-2.5 pr-8 sm:gap-3 sm:rounded-2xl sm:p-4 sm:pr-10"
             >
               <span
                 className={`absolute left-0 top-0 h-full w-1 ${BARS[t.type]}`}
                 aria-hidden="true"
               />
               <span className="shrink-0">{ICONS[t.type]}</span>
-              <p className="text-xs font-medium text-slate-800 dark:text-slate-100 sm:text-sm">{t.message}</p>
+              <p className="min-w-0 flex-1 text-[11px] font-medium leading-snug break-words text-slate-800 dark:text-slate-100 sm:text-sm">
+                {t.message}
+              </p>
               <button
                 onClick={() => dismiss(t.id)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 sm:right-3"
                 aria-label="Dismiss notification"
               >
-                <X className="size-4" />
+                <X className="size-3.5 sm:size-4" />
               </button>
             </motion.div>
           ))}

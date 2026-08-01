@@ -141,9 +141,10 @@ export function checkBetAgainstLimits(
 ): LimitCheck {
   if (!limits.enabled) return { ok: true, message: '' };
 
+  const userBets = bets.filter((b) => !b.id.startsWith('demo-'));
   const today = todayISO();
-  const todaySpent = spentOnDate(bets, today);
-  const weekSpent = spentLastDays(bets, 7);
+  const todaySpent = spentOnDate(userBets, today);
+  const weekSpent = spentLastDays(userBets, 7);
 
   if (limits.daily > 0 && todaySpent + amount > limits.daily) {
     return {

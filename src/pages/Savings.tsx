@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { CircularGauge } from '@/components/ui/CircularGauge';
 import { useGoals } from '@/contexts/GoalContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useChallenges } from '@/contexts/ChallengeContext';
 import { formatGHS, formatDate } from '@/utils/format';
 import type { SavingsGoal } from '@/types';
 
@@ -38,6 +39,7 @@ function estimateCompletion(goal: SavingsGoal): string {
 export function Savings() {
   const { goals, addGoal, contribute, updateGoal, deleteGoal } = useGoals();
   const { toast } = useToast();
+  const { recordSavingsContribution } = useChallenges();
 
   const [creating, setCreating] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -97,6 +99,7 @@ export function Savings() {
       return;
     }
     contribute(goal.id, amount);
+    recordSavingsContribution();
     toast(`GH₵ ${amount.toLocaleString()} added to ${goal.name}.`);
     setContribution('');
     setContributingId(null);

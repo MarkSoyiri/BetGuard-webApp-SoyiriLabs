@@ -12,6 +12,8 @@ import {
   Leaf,
   TreePine,
   Sprout,
+  Trophy,
+  Target,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -30,6 +32,7 @@ import { useBudget } from '@/contexts/BudgetContext';
 import { useUser } from '@/contexts/UserContext';
 import { useLimits } from '@/contexts/LimitsContext';
 import { useGreenBet } from '@/contexts/GreenBetContext';
+import { useChallenges } from '@/contexts/ChallengeContext';
 import { greeting, formatGHS, formatDateShort, monthLabel, todayISO } from '@/utils/format';
 import { monthlySpending, budgetStatus, dateRange, computeHealthScore, spentOnDate } from '@/utils/stats';
 import { ChartTooltip, AXIS_TICK, gridStyle, COLORS } from '@/components/charts/chartUtils';
@@ -40,6 +43,7 @@ export function Dashboard() {
   const { monthlyBudget } = useBudget();
   const { limits, isCooldownActive, cooldownEndsAt } = useLimits();
   const { enabled: greenEnabled, greenScore, scoreBand, trees, totalContributed, greenPoints } = useGreenBet();
+  const { activeChallenges, healthBonus } = useChallenges();
 
   const monthSpent = useMemo(() => monthlySpending(bets), [bets]);
   const health = useMemo(() => computeHealthScore(bets, monthlyBudget, limits), [bets, monthlyBudget, limits]);
@@ -157,7 +161,7 @@ export function Dashboard() {
           </ChartCard>
         </div>
 
-        <RiskCard level={riskLevel} score={Math.max(5, Math.min(95, riskScore))} />
+        <RiskCard level={riskLevel} score={Math.max(5, Math.min(95, riskScore + healthBonus))} />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -240,6 +244,49 @@ export function Dashboard() {
             <p className="mt-3 text-xs leading-relaxed text-slate-400">
               {formatGHS(totalContributed, 2)} contributed to environmental projects so far.
             </p>
+          </ChartCard>
+
+          <ChartCard
+            title="Active challenges"
+            subtitle="Auto-tracked — progress updates as you play"
+            className="mt-6"
+            action={
+              <Link to="/challenges" className="flex items-center gap-1 text-xs font-semibold text-primary-light hover:underline">
+                View all <ChevronRight className="size-3.5" aria-hidden="true" />
+              </Link>
+            }
+          >
+            {activeChallenges.length === 0 ? (
+              <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
+                No active challenges — you've completed everything. Check back soon.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {activeChallenges.map((item) => (
+                  <Link key={item.challenge.id} to="/challenges" className="block rounded-xl p-2 transition hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <div className="mb-1.5 flex items-center gap-2">
+                      <Target className="size-3.5 shrink-0 text-primary-light" aria-hidden="true" />
+                      <p className="truncate text-sm font-semibold text-ink dark:text-white">{item.challenge.title}</p>
+                      <span className="ml-auto shrink-0 text-xs font-bold text-primary-light">{item.pct}%</span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200/70 dark:bg-slate-700/60">
+                      <motion.div
+                        className="h-full rounded-full bg-gradient-to-r from-primary to-primary-light"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${item.pct}%` }}
+                        transition={{ duration: 1.1 }}
+                      />
+                    </div>
+                    <p className="mt-1 text-[11px] text-slate-400">{item.estimate}</p>
+                  </Link>
+                ))}
+                {healthBonus > 0 && (
+                  <p className="flex items-center gap-1.5 rounded-lg bg-secondary/10 px-2.5 py-1.5 text-[11px] font-semibold text-secondary-dark dark:text-secondary">
+                    <Trophy className="size-3" aria-hidden="true" /> Completed challenges add +{healthBonus} to your health score
+                  </p>
+                )}
+              </div>
+            )}
           </ChartCard>
         </div>
       </div>

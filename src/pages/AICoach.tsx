@@ -8,9 +8,11 @@ import { useGoals } from '@/contexts/GoalContext';
 import { useUser } from '@/contexts/UserContext';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { useGreenBet } from '@/contexts/GreenBetContext';
+import { useChallenges } from '@/contexts/ChallengeContext';
 import { computeStats, budgetStatus, monthlySpending, budgetProgress } from '@/utils/stats';
 import { formatGHS } from '@/utils/format';
 import { AI_COACH_QUICK_QUESTIONS } from '@/data/sample';
+import { progressPct } from '@/utils/challenges';
 import type { ChatMessage } from '@/types';
 import { uid } from '@/utils/format';
 
@@ -25,13 +27,20 @@ interface CoachContext {
   greenEnabled: boolean;
   trees: number;
   greenContributed: number;
+  challengeTip: string;
+  completedChallenges: number;
+  totalChallenges: number;
 }
 
 function buildReply(input: string, ctx: CoachContext): string {
   const q = input.toLowerCase();
-  const { monthSpent, budget, monthlyAvg, savingsTotal, winRate, name, greenScore, greenEnabled, trees, greenContributed } = ctx;
+  const { monthSpent, budget, monthlyAvg, savingsTotal, winRate, name, greenScore, greenEnabled, trees, greenContributed, challengeTip, completedChallenges, totalChallenges } = ctx;
   const remaining = Math.max(0, budget - monthSpent);
   const status = budgetStatus(monthSpent, budget);
+
+  if (q.includes('challenge') || q.includes('focus') || q.includes('progress') || q.includes('next')) {
+    return `Your challenges are tracked automatically from your real activity — you have completed ${completedChallenges} of ${totalChallenges}. ${challengeTip}`;
+  }
 
   if (q.includes('planet') || q.includes('green') || q.includes('environment') || q.includes('impact') || q.includes('earth')) {
     if (!greenEnabled) {
@@ -96,6 +105,7 @@ export function AICoach() {
   const { goals } = useGoals();
   const { profile } = useUser();
   const { greenScore, enabled: greenEnabled, trees, totalContributed: greenContributed } = useGreenBet();
+  const { challenges, completedCount, totalCount, estimateDays, recordCoachMessage } = useChallenges();
 
   const stats = useMemo(() => computeStats(bets), [bets]);
   const monthSpent = useMemo(() => monthlySpending(bets), [bets]);
@@ -108,6 +118,18 @@ export function AICoach() {
     return recent.reduce((s, b) => s + b.amount, 0) / 2;
   }, [bets]);
   const savingsTotal = useMemo(() => goals.reduce((s, g) => s + g.current, 0), [goals]);
+
+  const challengeTip = useMemo(() => {
+    const active = challenges
+      .filter((c) => !c.completed)
+      .map((c) => ({ c, pct: progressPct(c.progress, c.target) }))
+      .sort((a, b) => b.pct - a.pct);
+    if (active.length === 0) return 'You have finished every active challenge — excellent discipline!';
+    const top = active[0];
+    const remaining = Math.max(0, top.c.target - top.c.progress);
+    const near = top.pct >= 80 ? ` You are ${top.pct}% of the way — just ${remaining} ${top.c.unit} to go.` : '';
+    return `Your closest goal is "${top.c.title}" at ${top.pct}% (${estimateDays(top.c)}).${near}`;
+  }, [challenges, estimateDays]);
 
   const [messages, setMessages] = usePersistedState<ChatMessage[]>('chat', [
     {
@@ -128,6 +150,7 @@ export function AICoach() {
   const send = (text: string) => {
     const clean = text.trim();
     if (!clean || typing) return;
+    recordCoachMessage();
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     setMessages((prev) => [...prev, { id: uid('msg'), role: 'user', text: clean, time: now }]);
     setInput('');
@@ -143,6 +166,9 @@ export function AICoach() {
       greenEnabled,
       trees,
       greenContributed,
+      challengeTip,
+      completedChallenges: completedCount,
+      totalChallenges: totalCount,
     };
     setTimeout(() => {
       const reply = buildReply(clean, ctx);

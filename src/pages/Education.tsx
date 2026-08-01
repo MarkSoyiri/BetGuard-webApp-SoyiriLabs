@@ -24,6 +24,7 @@ import { sampleArticles, quizQuestions } from '@/data/sample';
 import type { Article } from '@/types';
 import { useToast } from '@/contexts/ToastContext';
 import { useAchievements } from '@/contexts/AchievementContext';
+import { useChallenges } from '@/contexts/ChallengeContext';
 
 const ICONS: Record<string, LucideIcon> = {
   brain: Brain,
@@ -37,6 +38,7 @@ const ICONS: Record<string, LucideIcon> = {
 export function Education() {
   const { toast } = useToast();
   const { addAchievement } = useAchievements();
+  const { recordArticleRead, recordQuizScore } = useChallenges();
 
   const [selected, setSelected] = useState<Article | null>(null);
   const [answers, setAnswers] = useState<(number | null)[]>(Array(quizQuestions.length).fill(null));
@@ -51,6 +53,7 @@ export function Education() {
 
   const submitQuiz = () => {
     setSubmitted(true);
+    recordQuizScore((score / quizQuestions.length) * 100);
     if (passed) {
       addAchievement('Financial Literacy', 'Scored 70%+ on the Education quiz.');
       toast(`Quiz complete! You scored ${score}/${quizQuestions.length}. Badge awarded!`);
@@ -77,7 +80,10 @@ export function Education() {
           return (
             <motion.button
               key={article.id}
-              onClick={() => setSelected(article)}
+              onClick={() => {
+                recordArticleRead(article.id);
+                setSelected(article);
+              }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.06 }}

@@ -147,6 +147,9 @@ export interface Achievement {
   category?: 'betting' | 'green';
 }
 
+export type ChallengeCategory = 'betting' | 'green' | 'education' | 'savings';
+export type ChallengeFormat = 'count' | 'ghs' | 'pct' | 'projects' | 'days';
+
 export interface Challenge {
   id: string;
   title: string;
@@ -158,8 +161,12 @@ export interface Challenge {
   reward: string;
   completed: boolean;
   claimed: boolean;
-  category?: 'standard' | 'environmental';
+  category?: ChallengeCategory;
   points?: number;
+  format?: ChallengeFormat;
+  icon?: string;
+  achievementId?: string;
+  healthBoost?: boolean;
 }
 
 export interface GreenContribution {

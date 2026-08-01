@@ -9,6 +9,9 @@ import {
   Clock,
   ListChecks,
   ShieldAlert,
+  Leaf,
+  TreePine,
+  Sprout,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -26,6 +29,7 @@ import { useBets } from '@/contexts/BetContext';
 import { useBudget } from '@/contexts/BudgetContext';
 import { useUser } from '@/contexts/UserContext';
 import { useLimits } from '@/contexts/LimitsContext';
+import { useGreenBet } from '@/contexts/GreenBetContext';
 import { greeting, formatGHS, formatDateShort, monthLabel, todayISO } from '@/utils/format';
 import { monthlySpending, budgetStatus, dateRange, computeHealthScore, spentOnDate } from '@/utils/stats';
 import { ChartTooltip, AXIS_TICK, gridStyle, COLORS } from '@/components/charts/chartUtils';
@@ -35,6 +39,7 @@ export function Dashboard() {
   const { bets } = useBets();
   const { monthlyBudget } = useBudget();
   const { limits, isCooldownActive, cooldownEndsAt } = useLimits();
+  const { enabled: greenEnabled, greenScore, scoreBand, trees, totalContributed, greenPoints } = useGreenBet();
 
   const monthSpent = useMemo(() => monthlySpending(bets), [bets]);
   const health = useMemo(() => computeHealthScore(bets, monthlyBudget, limits), [bets, monthlyBudget, limits]);
@@ -198,6 +203,43 @@ export function Dashboard() {
                 </motion.li>
               ))}
             </ul>
+          </ChartCard>
+        </div>
+
+        <div>
+          <ChartCard
+            title="GreenBet"
+            subtitle={greenEnabled ? 'Your betting is planting trees' : 'Paused — 2% of stakes not set aside'}
+            action={
+              <Link to="/greenbet" className="flex items-center gap-1 text-xs font-semibold text-secondary hover:underline">
+                View <ChevronRight className="size-3.5" aria-hidden="true" />
+              </Link>
+            }
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-secondary to-emerald-600 text-white shadow-lg shadow-secondary/25">
+                <Leaf className="size-7" aria-hidden="true" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-display text-2xl font-bold text-ink dark:text-white">{greenScore}</p>
+                <p className="text-xs font-semibold text-secondary-dark dark:text-secondary">{scoreBand.label}</p>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/60">
+                <TreePine className="size-4 text-secondary" aria-hidden="true" />
+                <p className="mt-1 font-display text-lg font-bold text-ink dark:text-white">{trees}</p>
+                <p className="text-[11px] text-slate-400">Trees funded</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/60">
+                <Sprout className="size-4 text-secondary" aria-hidden="true" />
+                <p className="mt-1 font-display text-lg font-bold text-ink dark:text-white">{greenPoints.toLocaleString()}</p>
+                <p className="text-[11px] text-slate-400">Green points</p>
+              </div>
+            </div>
+            <p className="mt-3 text-xs leading-relaxed text-slate-400">
+              {formatGHS(totalContributed, 2)} contributed to environmental projects so far.
+            </p>
           </ChartCard>
         </div>
       </div>

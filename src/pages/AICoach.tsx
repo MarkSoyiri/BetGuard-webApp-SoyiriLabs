@@ -7,6 +7,7 @@ import { useBudget } from '@/contexts/BudgetContext';
 import { useGoals } from '@/contexts/GoalContext';
 import { useUser } from '@/contexts/UserContext';
 import { usePersistedState } from '@/hooks/usePersistedState';
+import { useGreenBet } from '@/contexts/GreenBetContext';
 import { computeStats, budgetStatus, monthlySpending, budgetProgress } from '@/utils/stats';
 import { formatGHS } from '@/utils/format';
 import { AI_COACH_QUICK_QUESTIONS } from '@/data/sample';
@@ -20,13 +21,24 @@ interface CoachContext {
   savingsTotal: number;
   winRate: number;
   name: string;
+  greenScore: number;
+  greenEnabled: boolean;
+  trees: number;
+  greenContributed: number;
 }
 
 function buildReply(input: string, ctx: CoachContext): string {
   const q = input.toLowerCase();
-  const { monthSpent, budget, monthlyAvg, savingsTotal, winRate, name } = ctx;
+  const { monthSpent, budget, monthlyAvg, savingsTotal, winRate, name, greenScore, greenEnabled, trees, greenContributed } = ctx;
   const remaining = Math.max(0, budget - monthSpent);
   const status = budgetStatus(monthSpent, budget);
+
+  if (q.includes('planet') || q.includes('green') || q.includes('environment') || q.includes('impact') || q.includes('earth')) {
+    if (!greenEnabled) {
+      return `GreenBet is currently turned off, so your bets are not creating environmental contributions. You can re-enable it in Settings or on the GreenBet page — it only sets aside 2% of each stake.`;
+    }
+    return `Great question! With GreenBet on, 2% of every demo stake is set aside for real projects. So far that pool has grown to ${formatGHS(greenContributed, 2)} — enough to fund ${trees} tree${trees === 1 ? '' : 's'}. Your Green Score is ${greenScore}/100. Betting a little less doesn't just protect your wallet, it plants trees.`;
+  }
 
   if (q.includes('how much') || q.includes('spent') || q.includes('spending')) {
     return `So far this month you have placed bets totalling ${formatGHS(monthSpent)}. That leaves ${formatGHS(remaining)} of your ${formatGHS(budget)} budget. Your monthly average over the past 8 weeks is ${formatGHS(monthlyAvg)}.`;
@@ -83,6 +95,7 @@ export function AICoach() {
   const { monthlyBudget } = useBudget();
   const { goals } = useGoals();
   const { profile } = useUser();
+  const { greenScore, enabled: greenEnabled, trees, totalContributed: greenContributed } = useGreenBet();
 
   const stats = useMemo(() => computeStats(bets), [bets]);
   const monthSpent = useMemo(() => monthlySpending(bets), [bets]);
@@ -126,6 +139,10 @@ export function AICoach() {
       savingsTotal,
       winRate: stats.winRate,
       name: profile?.name ?? 'friend',
+      greenScore,
+      greenEnabled,
+      trees,
+      greenContributed,
     };
     setTimeout(() => {
       const reply = buildReply(clean, ctx);

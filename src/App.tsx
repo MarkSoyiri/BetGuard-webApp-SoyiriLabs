@@ -16,6 +16,7 @@ const AICoach = lazy(() => import('@/pages/AICoach').then((m) => ({ default: m.A
 const Education = lazy(() => import('@/pages/Education').then((m) => ({ default: m.Education })));
 const RiskAssessment = lazy(() => import('@/pages/RiskAssessment').then((m) => ({ default: m.RiskAssessment })));
 const Challenges = lazy(() => import('@/pages/Challenges').then((m) => ({ default: m.Challenges })));
+const GreenBet = lazy(() => import('@/pages/GreenBet').then((m) => ({ default: m.GreenBet })));
 const Community = lazy(() => import('@/pages/Community').then((m) => ({ default: m.Community })));
 const Statistics = lazy(() => import('@/pages/Statistics').then((m) => ({ default: m.Statistics })));
 const Achievements = lazy(() => import('@/pages/Achievements').then((m) => ({ default: m.Achievements })));
@@ -51,6 +52,7 @@ export default function App() {
               <Route path="/education" element={<Education />} />
               <Route path="/risk-assessment" element={<RiskAssessment />} />
               <Route path="/challenges" element={<Challenges />} />
+              <Route path="/greenbet" element={<GreenBet />} />
               <Route path="/community" element={<Community />} />
               <Route path="/statistics" element={<Statistics />} />
               <Route path="/achievements" element={<Achievements />} />

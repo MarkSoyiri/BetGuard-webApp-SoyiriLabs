@@ -144,6 +144,7 @@ export interface Achievement {
   tier: 'bronze' | 'silver' | 'gold';
   unlocked: boolean;
   unlockedAt?: string;
+  category?: 'betting' | 'green';
 }
 
 export interface Challenge {
@@ -157,6 +158,32 @@ export interface Challenge {
   reward: string;
   completed: boolean;
   claimed: boolean;
+  category?: 'standard' | 'environmental';
+  points?: number;
+}
+
+export interface GreenContribution {
+  id: string;
+  date: string;
+  betRef: string;
+  sport: string;
+  stake: number;
+  contribution: number;
+  points: number;
+  project: string;
+}
+
+export interface GreenProject {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  sdg: string;
+  target: number;
+  raised: number;
+  supporters: number;
+  status: 'active' | 'funded';
+  gradient: string;
 }
 
 export interface RiskAssessmentResult {

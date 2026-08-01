@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, type ReactNode } from 'react';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { sampleAchievements } from '@/data/sample';
 import type { Achievement } from '@/types';
@@ -19,6 +19,14 @@ export function AchievementProvider({ children }: { children: ReactNode }) {
     'achievements',
     sampleAchievements(),
   );
+
+  useEffect(() => {
+    setAchievements((prev) => {
+      const known = new Set(prev.map((a) => a.id));
+      const missing = sampleAchievements().filter((a) => !known.has(a.id));
+      return missing.length === 0 ? prev : [...prev, ...missing];
+    });
+  }, [setAchievements]);
 
   const unlock = useCallback(
     (id: string): boolean => {

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { Sparkles, TrendingDown, TrendingUp, Wallet, Leaf } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Badge';
@@ -10,6 +10,7 @@ import { formatGHS } from '@/utils/format';
 import { useBets } from '@/contexts/BetContext';
 import { useBudget } from '@/contexts/BudgetContext';
 import { useLimits } from '@/contexts/LimitsContext';
+import { useGreenBet } from '@/contexts/GreenBetContext';
 import { computeHealthScore, monthlySpending } from '@/utils/stats';
 
 interface PostBetInsightProps {
@@ -28,6 +29,7 @@ export function PostBetInsight({ open, slips, onClose }: PostBetInsightProps) {
   const { bets } = useBets();
   const { monthlyBudget } = useBudget();
   const { limits } = useLimits();
+  const { greenScore, scoreBand } = useGreenBet();
 
   const snapshot = useMemo(() => {
     const totalStake = slips.reduce((s, x) => s + x.stake, 0);
@@ -35,6 +37,7 @@ export function PostBetInsight({ open, slips, onClose }: PostBetInsightProps) {
     const net = totalPayout - totalStake;
     const won = slips.filter((s) => s.status === 'won').length;
     const lost = slips.filter((s) => s.status === 'lost').length;
+    const greenContribution = Math.round(totalStake * 0.02 * 100) / 100;
 
     const monthSpent = monthlySpending(bets);
     const budgetPct = monthlyBudget > 0 ? Math.round((monthSpent / monthlyBudget) * 100) : 0;
@@ -73,7 +76,7 @@ export function PostBetInsight({ open, slips, onClose }: PostBetInsightProps) {
       });
     }
 
-    return { totalStake, totalPayout, net, won, lost, monthSpent, budgetPct, health, insights };
+    return { totalStake, totalPayout, net, won, lost, monthSpent, budgetPct, health, insights, greenContribution };
   }, [bets, monthlyBudget, limits, slips]);
 
   return (
@@ -156,6 +159,24 @@ export function PostBetInsight({ open, slips, onClose }: PostBetInsightProps) {
               </li>
             ))}
           </ul>
+        </div>
+
+        <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-secondary/10 to-emerald-600/10 px-4 py-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-secondary to-emerald-600 text-white shadow-md shadow-secondary/25">
+              <Leaf className="size-4" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-ink dark:text-white">Green contribution from this round</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                {formatGHS(snapshot.greenContribution, 2)} set aside for environmental projects
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="font-display text-lg font-bold text-secondary-dark dark:text-secondary">{formatGHS(snapshot.greenContribution, 2)}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Green score {greenScore} · {scoreBand.label}</p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 rounded-xl bg-slate-100/80 px-4 py-2.5 text-xs font-semibold text-slate-500 dark:bg-slate-800/80 dark:text-slate-300">

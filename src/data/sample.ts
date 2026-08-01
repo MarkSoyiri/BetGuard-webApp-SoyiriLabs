@@ -5,6 +5,7 @@ import type {
   BetRecord,
   Challenge,
   CommunityPost,
+  GreenProject,
   SavingsGoal,
 } from '@/types';
 import { daysAgoISO } from '@/utils/format';
@@ -68,6 +69,12 @@ export function sampleChallenges(): Challenge[] {
     { id: 'ch-7-day', title: '7-Day Challenge', description: 'No bets for 7 consecutive days.', frequency: 'Weekly', target: 7, progress: 3, unit: 'days', reward: 'Week Warrior Badge', completed: false, claimed: false },
     { id: 'ch-lower-30', title: 'Cut Spending 30%', description: 'Spend 30% less on betting this month.', frequency: 'Monthly', target: 30, progress: 18, unit: '% reduced', reward: 'Money Master Badge', completed: false, claimed: false },
     { id: 'ch-30-day', title: '30-Day Challenge', description: 'A whole month of healthy betting habits.', frequency: 'Monthly', target: 30, progress: 11, unit: 'days', reward: 'Guardian Badge', completed: false, claimed: false },
+    { id: 'ch-green-tree', title: 'Plant a Tree', description: 'Plant a tree in your community or garden.', frequency: 'Weekly', target: 1, progress: 0, unit: 'tree', reward: 'Tree Planter', completed: false, claimed: false, category: 'environmental', points: 40 },
+    { id: 'ch-green-recycle', title: 'Recycle for Seven Days', description: 'Sort and recycle your waste for seven consecutive days.', frequency: 'Weekly', target: 7, progress: 0, unit: 'days', reward: 'Recycler', completed: false, claimed: false, category: 'environmental', points: 60 },
+    { id: 'ch-green-water', title: 'Save Water', description: 'Keep showers short and fix that leaking tap.', frequency: 'Daily', target: 1, progress: 0, unit: 'day', reward: 'Water Saver', completed: false, claimed: false, category: 'environmental', points: 20 },
+    { id: 'ch-green-walk', title: 'Walk Instead of Drive', description: 'Walk or cycle five short trips instead of driving.', frequency: 'Weekly', target: 5, progress: 0, unit: 'trips', reward: 'Eco Walker', completed: false, claimed: false, category: 'environmental', points: 40 },
+    { id: 'ch-green-cleanup', title: 'Community Clean-up', description: 'Join or organise a clean-up of a local park or beach.', frequency: 'Monthly', target: 1, progress: 0, unit: 'clean-up', reward: 'Clean-up Hero', completed: false, claimed: false, category: 'environmental', points: 80 },
+    { id: 'ch-green-garden', title: 'Start a Home Garden', description: 'Start a small herb or vegetable garden at home.', frequency: 'Monthly', target: 1, progress: 0, unit: 'garden', reward: 'Home Gardener', completed: false, claimed: false, category: 'environmental', points: 80 },
   ];
 }
 
@@ -84,6 +91,88 @@ export function sampleAchievements(): Achievement[] {
     { id: 'ach-30-day', title: '30-Day Champion', description: 'Completed the 30-Day Challenge.', icon: 'crown', tier: 'gold', unlocked: false },
     { id: 'ach-low-risk', title: 'Low-Risk Lifestyle', description: 'Maintained a low risk score for 3 months.', icon: 'shield', tier: 'gold', unlocked: false },
     { id: 'ach-zero-week', title: 'Bet-Free Month', description: 'No bets placed for an entire month.', icon: 'award', tier: 'gold', unlocked: false },
+    { id: 'ach-green-bronze', title: 'Bronze Environmental Supporter', description: 'Made your first green contribution.', icon: 'leaf', tier: 'bronze', unlocked: false, category: 'green' },
+    { id: 'ach-green-silver', title: 'Silver Environmental Supporter', description: 'Reached 10 green contributions.', icon: 'leaf', tier: 'silver', unlocked: false, category: 'green' },
+    { id: 'ach-green-gold', title: 'Gold Environmental Supporter', description: 'Reached 25 green contributions.', icon: 'leaf', tier: 'gold', unlocked: false, category: 'green' },
+    { id: 'ach-eco-warrior', title: 'Eco Warrior', description: 'Put GH₵200+ into green projects.', icon: 'shield', tier: 'silver', unlocked: false, category: 'green' },
+    { id: 'ach-sustainability', title: 'Sustainability Champion', description: 'Reached a Green Score of 90+.', icon: 'crown', tier: 'gold', unlocked: false, category: 'green' },
+  ];
+}
+
+export function sampleGreenProjects(): GreenProject[] {
+  return [
+    {
+      id: 'proj-tree',
+      name: 'National Tree Planting Campaign',
+      icon: 'tree',
+      description: 'Funds the planting and care of native trees across Ghana to restore forests and fight desertification.',
+      sdg: 'Forests & Land',
+      target: 2000,
+      raised: 1450,
+      supporters: 86,
+      status: 'active',
+      gradient: 'from-emerald-500 to-green-700',
+    },
+    {
+      id: 'proj-recycle',
+      name: 'Plastic Recycling Initiative',
+      icon: 'recycle',
+      description: 'Builds collection points and recycling hubs that keep plastic waste out of our rivers and oceans.',
+      sdg: 'Green Cities',
+      target: 3000,
+      raised: 2100,
+      supporters: 64,
+      status: 'active',
+      gradient: 'from-sky-500 to-cyan-700',
+    },
+    {
+      id: 'proj-water',
+      name: 'Clean Water Project',
+      icon: 'droplet',
+      description: 'Drills boreholes and installs filters so communities have safe, clean drinking water.',
+      sdg: 'Clean Water',
+      target: 5000,
+      raised: 1800,
+      supporters: 41,
+      status: 'active',
+      gradient: 'from-blue-500 to-indigo-700',
+    },
+    {
+      id: 'proj-education',
+      name: 'Environmental Education Programme',
+      icon: 'school',
+      description: 'Teaches students and families about conservation, waste sorting and sustainable living.',
+      sdg: 'Climate Action',
+      target: 1500,
+      raised: 520,
+      supporters: 22,
+      status: 'active',
+      gradient: 'from-amber-500 to-orange-700',
+    },
+    {
+      id: 'proj-parks',
+      name: 'Urban Green Parks',
+      icon: 'tree-deciduous',
+      description: 'Creates shade, cooling and green space in city neighbourhoods by planting community parks.',
+      sdg: 'Green Cities',
+      target: 2500,
+      raised: 900,
+      supporters: 37,
+      status: 'active',
+      gradient: 'from-lime-500 to-emerald-700',
+    },
+    {
+      id: 'proj-climate',
+      name: 'Climate Awareness Campaign',
+      icon: 'earth',
+      description: 'A public campaign making climate science simple and inspiring everyday eco action.',
+      sdg: 'Climate Action',
+      target: 1000,
+      raised: 1000,
+      supporters: 55,
+      status: 'funded',
+      gradient: 'from-violet-500 to-purple-700',
+    },
   ];
 }
 
@@ -344,4 +433,5 @@ export const AI_COACH_QUICK_QUESTIONS = [
   'Give me tips to reduce my spending',
   'What should I do after a big loss?',
   'How do I set a healthy budget?',
+  'How is my betting helping the planet?',
 ];

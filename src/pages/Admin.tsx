@@ -21,6 +21,9 @@ import {
   Trophy,
   GraduationCap,
   ShieldCheck,
+  Leaf,
+  TreePine,
+  HeartHandshake,
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageTransition';
 import { StatCard } from '@/components/ui/StatCard';
@@ -29,6 +32,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Chip } from '@/components/ui/Badge';
 import { useBets } from '@/contexts/BetContext';
+import { useGreenBet } from '@/contexts/GreenBetContext';
 import { formatGHS, formatDateShort } from '@/utils/format';
 import { dateRange } from '@/utils/stats';
 import { ChartTooltip, AXIS_TICK, gridStyle, COLORS } from '@/components/charts/chartUtils';
@@ -37,6 +41,15 @@ const DAILY_ACTIVE = 486;
 
 export function Admin() {
   const { bets } = useBets();
+  const { contributions, projects } = useGreenBet();
+
+  const greenByProject = useMemo(() => {
+    const map = new Map<string, number>();
+    contributions.forEach((c) => map.set(c.project, (map.get(c.project) ?? 0) + c.contribution));
+    return Array.from(map.entries())
+      .map(([name, value]) => ({ name: name.replace(' Project', ''), value: Math.round(value) }))
+      .sort((a, b) => b.value - a.value);
+  }, [contributions]);
 
   const platformSpend = useMemo(() => {
     const map = new Map<string, number>();
@@ -259,6 +272,71 @@ export function Admin() {
             </p>
           </div>
         </GlassCard>
+      </div>
+
+      <div className="mt-10">
+        <h2 className="mb-4 flex items-center gap-2 font-display text-xl font-bold text-ink dark:text-white">
+          <Leaf className="size-5 text-secondary" aria-hidden="true" /> Environmental impact
+        </h2>
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          <StatCard icon={Leaf} label="Green pool (platform)" value={formatGHS(58_400)} sub="demo estimate from 2% of stakes" tone="secondary" delay={0} />
+          <StatCard icon={TreePine} label="Trees funded (platform)" value="1,168" sub="one tree per GH₵50 contributed" tone="primary" delay={0.05} />
+          <StatCard icon={HeartHandshake} label="Projects funded (platform)" value="9" sub="across 6 tracked initiatives" tone="accent" delay={0.1} />
+        </div>
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <ChartCard title="Green contribution by project" subtitle="Your local contributions (GH₵)">
+            {greenByProject.length === 0 ? (
+              <p className="py-10 text-center text-sm text-slate-400">
+                No contributions yet — place a demo bet on the Sportsbook to grow this chart.
+              </p>
+            ) : (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={greenByProject} layout="vertical" margin={{ top: 8, right: 12, left: 6, bottom: 0 }}>
+                    <CartesianGrid {...gridStyle} horizontal={false} />
+                    <XAxis type="number" tick={AXIS_TICK} axisLine={false} tickLine={false} />
+                    <YAxis type="category" dataKey="name" tick={AXIS_TICK} axisLine={false} tickLine={false} width={90} />
+                    <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(148,163,184,0.08)' }} />
+                    <Bar dataKey="value" name="Contributed" radius={[0, 8, 8, 0]} animationDuration={1200}>
+                      {greenByProject.map((_, i) => (
+                        <Cell key={i} fill={[COLORS.secondary, COLORS.sky, COLORS.primaryLight, COLORS.violet][i % 4]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </ChartCard>
+
+          <GlassCard className="p-6">
+            <h3 className="mb-5 font-display text-base font-bold text-ink dark:text-white">
+              Project funding status
+            </h3>
+            <div className="space-y-5">
+              {projects.map((p, i) => (
+                <div key={p.id}>
+                  <div className="mb-1.5 flex justify-between text-sm">
+                    <span className="font-medium text-slate-600 dark:text-slate-300">{p.name}</span>
+                    <span className="font-bold text-ink dark:text-white">
+                      {Math.round((p.raised / p.target) * 100)}%
+                    </span>
+                  </div>
+                  <ProgressBar
+                    value={(p.raised / p.target) * 100}
+                    color={p.status === 'funded' ? COLORS.secondary : [COLORS.primaryLight, COLORS.sky, COLORS.violet, COLORS.accent][i % 4]}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 rounded-2xl bg-gradient-to-r from-secondary/[0.06] to-primary/[0.06] p-4">
+              <p className="text-sm font-bold text-ink dark:text-white">Insight</p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                Users who opt into GreenBet bet 22% less per month — a little purpose goes a long way
+                in responsible gambling.
+              </p>
+            </div>
+          </GlassCard>
+        </div>
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ import { GoalProvider } from './GoalContext';
 import { NotificationProvider } from './NotificationContext';
 import { CommunityProvider } from './CommunityContext';
 import { AchievementProvider } from './AchievementContext';
+import { GreenBetProvider } from './GreenBetContext';
 import { ToastProvider } from './ToastContext';
 
 export function AppProviders({ children }: { children: ReactNode }) {
@@ -23,7 +24,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
                   <GoalProvider>
                     <AchievementProvider>
                       <NotificationProvider>
-                        <CommunityProvider>{children}</CommunityProvider>
+                        <GreenBetProvider>
+                          <CommunityProvider>{children}</CommunityProvider>
+                        </GreenBetProvider>
                       </NotificationProvider>
                     </AchievementProvider>
                   </GoalProvider>

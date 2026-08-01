@@ -15,6 +15,7 @@ import {
   Zap,
   Receipt,
   Eye,
+  Leaf,
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageTransition';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -30,6 +31,7 @@ import { useBudget } from '@/contexts/BudgetContext';
 import { useLimits } from '@/contexts/LimitsContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useGreenBet } from '@/contexts/GreenBetContext';
 import type { LimitCheck, Match, MatchSport, SlipMarket, SlipSelection, SportsbookBet } from '@/types';
 import { formatDate, formatGHS, todayISO } from '@/utils/format';
 import { checkBetAgainstLimits, monthlySpending, spentOnDate } from '@/utils/stats';
@@ -94,6 +96,7 @@ export function Sportsbook() {
   const { limits, isCooldownActive, cooldownEndsAt } = useLimits();
   const { addNotification } = useNotifications();
   const { toast } = useToast();
+  const { enabled: greenEnabled, recordContribution } = useGreenBet();
 
   const [tab, setTab] = useState<SportTab>('All');
   const [slip, setSlip] = useState<SlipSelection[]>([]);
@@ -190,8 +193,16 @@ export function Sportsbook() {
       );
       return;
     }
-    placeBet(slip, round2(stakeNum));
-    toast('Demo bet placed — added to your Betting Log.');
+    const placed = placeBet(slip, round2(stakeNum));
+    if (placed) {
+      const firstMatch = matches.find((m) => m.id === placed.selections[0]?.matchId);
+      recordContribution(placed.id, firstMatch?.sport ?? 'Football', round2(stakeNum));
+      if (greenEnabled) {
+        toast(`Demo bet placed — ${formatGHS(round2(stakeNum * 0.02), 2)} set aside for GreenBet.`);
+      } else {
+        toast('Demo bet placed — added to your Betting Log.');
+      }
+    }
     setSlip([]);
     setStake('');
   };
@@ -242,6 +253,13 @@ export function Sportsbook() {
           This is a <strong>practice sportsbook</strong> for learning good habits. Every bet you place is
           logged to your Betting Log and counts towards your monthly budget — so you can experience
           the full betting loop safely, with BetGuard keeping score of your real exposure.
+          {greenEnabled && (
+            <>
+              {' '}
+              <strong>2% of every stake</strong> is automatically set aside for GreenBet environmental
+              projects.
+            </>
+          )}
         </p>
       </motion.div>
 
@@ -410,6 +428,14 @@ export function Sportsbook() {
                   <div className="flex justify-between">
                     <span className="text-slate-400">Potential return</span>
                     <span className="font-bold text-secondary">{formatGHS(potential, 2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="flex items-center gap-1 text-slate-400">
+                      <Leaf className="size-3.5" aria-hidden="true" /> Green contribution (2%)
+                    </span>
+                    <span className="font-bold text-secondary">
+                      {greenEnabled ? formatGHS(round2(stakeNum * 0.02), 2) : 'Off'}
+                    </span>
                   </div>
                 </div>
 

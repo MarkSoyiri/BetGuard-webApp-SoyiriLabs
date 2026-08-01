@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   CalendarCheck,
@@ -11,6 +12,8 @@ import {
   Crown,
   ShieldCheck,
   Award,
+  Leaf,
+  Sprout,
   Lock,
   type LucideIcon,
 } from 'lucide-react';
@@ -31,6 +34,8 @@ const ICONS: Record<string, LucideIcon> = {
   crown: Crown,
   shield: ShieldCheck,
   award: Award,
+  leaf: Leaf,
+  sprout: Sprout,
 };
 
 const TIER_BG: Record<Tier, string> = {
@@ -47,8 +52,12 @@ const TIER_RING: Record<Tier, string> = {
 
 export function Achievements() {
   const { achievements, unlockedCount } = useAchievements();
+  const [filter, setFilter] = useState<'All' | 'Betting' | 'Green'>('All');
 
   const tiers: Tier[] = ['bronze', 'silver', 'gold'];
+  const visible = achievements.filter((a) =>
+    filter === 'All' ? true : filter === 'Green' ? a.category === 'green' : a.category !== 'green',
+  );
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -57,7 +66,7 @@ export function Achievements() {
         subtitle={`${unlockedCount} of ${achievements.length} badges unlocked — every healthy habit counts.`}
       />
 
-      <div className="mb-8 flex flex-wrap gap-3">
+      <div className="mb-8 flex flex-wrap items-center gap-3">
         {tiers.map((t) => {
           const count = achievements.filter((a) => a.tier === t && a.unlocked).length;
           const total = achievements.filter((a) => a.tier === t).length;
@@ -67,10 +76,28 @@ export function Achievements() {
             </Badge>
           );
         })}
+        <span className="mx-1 hidden w-px self-stretch bg-slate-200 dark:bg-slate-700 sm:block" />
+        {(['All', 'Betting', 'Green'] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
+              filter === f
+                ? f === 'Green'
+                  ? 'bg-gradient-to-r from-secondary to-emerald-600 text-white shadow-md shadow-secondary/25'
+                  : 'bg-gradient-to-r from-primary to-primary-light text-white shadow-md shadow-primary/25'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+            }`}
+            aria-pressed={filter === f}
+          >
+            {f === 'Green' && <Leaf className="mr-1 inline size-3.5" aria-hidden="true" />}
+            {f}
+          </button>
+        ))}
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {achievements.map((a, i) => {
+        {visible.map((a, i) => {
           const Icon = ICONS[a.icon] ?? Award;
           const locked = !a.unlocked;
           return (

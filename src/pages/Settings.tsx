@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Timer,
   ShieldAlert,
+  Leaf,
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageTransition';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -24,6 +25,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useUser } from '@/contexts/UserContext';
 import { useBudget } from '@/contexts/BudgetContext';
 import { useLimits } from '@/contexts/LimitsContext';
+import { useGreenBet } from '@/contexts/GreenBetContext';
 import { useToast } from '@/contexts/ToastContext';
 import { clearAllStorage, exportAllStorage, importAllStorage } from '@/utils/storage';
 import { formatDate, formatGHS } from '@/utils/format';
@@ -33,6 +35,7 @@ export function Settings() {
   const { profile, updateProfile } = useUser();
   const { monthlyBudget, setMonthlyBudget } = useBudget();
   const { limits, setLimits, startCooldown, cancelCooldown, isCooldownActive, cooldownEndsAt } = useLimits();
+  const { enabled: greenEnabled, toggleEnabled, greenScore, scoreBand, totalContributed, resetGreenData } = useGreenBet();
   const { toast } = useToast();
 
   const [name, setName] = useState(profile?.name ?? '');
@@ -344,6 +347,61 @@ export function Settings() {
               </div>
             </div>
           )}
+        </GlassCard>
+
+        <GlassCard className="p-6">
+          <h3 className="mb-4 flex items-center gap-2 font-display text-base font-bold text-ink dark:text-white">
+            <Leaf className="size-5 text-secondary" aria-hidden="true" /> GreenBet
+          </h3>
+          <button
+            onClick={() => {
+              toggleEnabled();
+              toast(greenEnabled ? 'GreenBet paused — no new contributions.' : 'GreenBet enabled — 2% of stakes now set aside.', 'info');
+            }}
+            className="flex w-full items-center justify-between rounded-2xl border border-slate-200 p-4 transition hover:border-secondary dark:border-slate-700"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+                <Leaf className="size-5" aria-hidden="true" />
+              </div>
+              <div className="min-w-0 flex-1 text-left">
+                <p className="text-sm font-bold text-ink dark:text-white">Environmental contributions</p>
+                <p className="text-xs text-slate-400">Set aside 2% of every sportsbook stake for green projects</p>
+              </div>
+            </div>
+            <span
+              className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${greenEnabled ? 'bg-secondary' : 'bg-slate-300'}`}
+              aria-hidden="true"
+            >
+              <motion.span
+                layout
+                transition={{ type: 'spring', stiffness: 500, damping: 32 }}
+                className={`absolute top-1 size-5 rounded-full bg-white shadow ${greenEnabled ? 'right-1' : 'left-1'}`}
+              />
+            </span>
+          </button>
+
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-secondary/10 p-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Your Green Score</p>
+              <p className="mt-0.5 font-display text-2xl font-bold text-secondary-dark dark:text-secondary">
+                {greenScore}/100 · {scoreBand.label}
+              </p>
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                {formatGHS(totalContributed, 2)} contributed in total
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                resetGreenData();
+                toast('GreenBet data reset.', 'info');
+              }}
+            >
+              Reset green data
+            </Button>
+          </div>
         </GlassCard>
 
         <GlassCard className="p-6">

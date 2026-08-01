@@ -6,19 +6,27 @@ BetGuard is a responsive single-page web app that helps people understand their 
 
 ## Highlights
 
-- **Command-center dashboard** — health score with factor breakdown, quick actions, daily-vs-limit pulse, pending-settlement tracker and responsible-mode status.
-- **Demo sportsbook** — realistic fixtures (Ghana Premier League, EPL, UCL, basketball, tennis) with a bet slip, 1/X/2 odds, combined odds and one-click result simulation.
+- **Focused dashboard** — greeting, key stat cards (spend, budget remaining, pending bets), a 30-day spending chart, recent activity and your live risk gauge.
+- **Demo sportsbook** — realistic fixtures (Ghana Premier League, EPL, UCL, basketball, tennis) with a bet slip, 1/X/2 odds, combined odds and one-click result simulation. Fixtures auto-refresh every 5 minutes, and every placed bet opens a full detail view.
 - **Post-bet insights** — after results settle, a modal summarises net P&L, per-slip breakdown and personalised behavioural insights.
+- **GreenBet 🌱** — every demo stake sets aside 2% for mock environmental projects, feeding a 0–100 Green Score, Green Points, eco challenges, badges and a Ghana-focused green impact page.
 - **Responsible betting system** — enforced daily/weekly/monthly/max-stake/max-bets limits, a 0–100 health score, betting breaks (cooldowns) and block-style interventions when a bet breaches a limit.
 - **Budget, savings goals, challenges, achievements, community, education center, AI coach and risk assessment.**
+
+## Recent updates
+
+- **GreenBet** — a planet-friendly twist on the demo sportsbook. 2% of every stake is set aside automatically, pooled into six environmental projects (tree planting, recycling, clean water, education, urban parks, climate awareness) with animated funding progress, supporters and funded states. Contributions earn Green Points, feed a weighted Green Score (health, budget, savings, challenges, contributions) with tiered bands, and unlock green badges. Green challenges award points, the AI coach answers planet questions, the dashboard shows a GreenBet widget, post-bet insights show the contribution, and Settings lets you toggle, reset and track it.
+- **Simplified dashboard** — removed the redundant 8-week chart, AI-recommendations box and savings-progress card; kept only the core stats, one spending chart, recent activity and the risk gauge.
+- **Auto-refreshing sportsbook** — fixtures now reset every 5 minutes on a rolling cycle (was once a day), so there are always fresh games. Pending slips on expired fixtures settle automatically, and the header shows a live countdown to the next refresh.
+- **Bet detail views** — clicking the eye icon on any record in the Betting Log's "All records" or the Sportsbook's "My bets" opens a modal with the full details (fixture, market, odds, stake, status, payout, notes).
 
 ## Features
 
 | Area | Description |
 | --- | --- |
-| Dashboard | Greeting, stat cards, 30-day & 8-week spend charts, recent bets, savings progress, AI recommendations, notifications |
-| Betting Log | Add, edit and delete bets; pending and settled statuses |
-| Sportsbook | Demo fixtures, bet slip, stake/odds/potential-return, simulate results, bet history |
+| Dashboard | Greeting, key stat cards, 30-day spending chart, recent activity, risk gauge |
+| Betting Log | Add, edit and delete bets; pending and settled statuses; per-record detail modal |
+| Sportsbook | Demo fixtures (auto-refresh every 5 min), bet slip, stake/odds/potential-return, simulate results, bet history with detail modal |
 | Budget | Set a monthly budget; alerts at 80% / 90% / 100% |
 | Savings Goals | Create goals and contribute; track overall progress |
 | AI Coach | Rule-based chat coach that reasons about your actual numbers |
@@ -27,7 +35,8 @@ BetGuard is a responsive single-page web app that helps people understand their 
 | Challenges | Daily/weekly/monthly responsible-gambling challenges |
 | Community | Anonymous posts, comments and community content |
 | Statistics | Deeper breakdowns of spend, outcomes and win rate |
-| Achievements | Unlockable badges tied to behaviour |
+| GreenBet | 2% of stakes → environmental projects, Green Score, Green Points, impact history & Ghana green priorities |
+| Achievements | Unlockable badges tied to behaviour (incl. green/eco badges) |
 | Notifications | Warning / achievement / info feed |
 | Settings | Profile, budget, notification prefs, responsible limits, betting breaks, data export/import/clear |
 | Admin | Demo-only admin dashboard |
@@ -82,6 +91,7 @@ src/
     BudgetContext.tsx     # Monthly budget
     LimitsContext.tsx     # Responsible-betting limits & cooldowns
     SportsbookContext.tsx # Fixtures, bet slips, result simulation
+    GreenBetContext.tsx   # Environmental contributions, points, score
     UserContext.tsx       # Auth + profile (demo)
     ...                   # Goal, Achievement, Notification, Community, Theme, Toast
   data/                   # Demo seed data (bets, matches, posts, goals)

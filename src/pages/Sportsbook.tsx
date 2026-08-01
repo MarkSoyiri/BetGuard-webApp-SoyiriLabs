@@ -221,13 +221,13 @@ export function Sportsbook() {
   };
 
   const stat = (icon: React.ReactNode, label: string, value: string, sub: string, tone: string) => (
-    <GlassCard hover={false} className="p-4">
-      <div className="flex items-center gap-2">
+    <GlassCard hover={false} className="p-2.5 sm:p-4">
+      <div className="flex items-center gap-1.5 sm:gap-2">
         <span className={tone}>{icon}</span>
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{label}</p>
+        <p className="truncate text-[10px] font-semibold uppercase tracking-wider text-slate-400 sm:text-xs">{label}</p>
       </div>
-      <p className="mt-1.5 font-display text-xl font-bold text-ink dark:text-white">{value}</p>
-      <p className="mt-0.5 text-[11px] text-slate-400">{sub}</p>
+      <p className="mt-1 font-display text-lg font-bold leading-tight text-ink dark:text-white sm:mt-1.5 sm:text-xl">{value}</p>
+      <p className="mt-0.5 hidden text-[11px] text-slate-400 sm:block">{sub}</p>
     </GlassCard>
   );
 
@@ -285,7 +285,7 @@ export function Sportsbook() {
         </motion.div>
       )}
 
-      <div className="mt-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <div className="mt-4 grid grid-cols-2 gap-2.5 sm:mt-6 sm:gap-4 xl:grid-cols-4">
         {stat(<Ticket className="size-4 text-primary-light" aria-hidden="true" />, 'Active slips', String(pendingCount), 'awaiting settlement', 'text-primary-light')}
         {stat(<Wallet className="size-4 text-primary-light" aria-hidden="true" />, 'Total staked', formatGHS(totalStaked), 'across all slips', 'text-primary-light')}
         {stat(

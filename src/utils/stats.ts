@@ -17,6 +17,7 @@ export function computeStats(bets: BetRecord[]): BetStats {
   let lostAmt = 0;
   bets.forEach((b) => {
     spent += b.amount;
+    if (b.status === 'pending') return;
     if (b.outcome === 'won') {
       won += 1;
       wonAmt += b.amount;

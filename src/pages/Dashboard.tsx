@@ -10,6 +10,7 @@ import {
   Sparkles,
   Plus,
   ChevronRight,
+  Clock,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -229,12 +230,14 @@ export function Dashboard() {
                 >
                   <div
                     className={`flex size-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold ${
-                      bet.outcome === 'won'
-                        ? 'bg-secondary/10 text-secondary-dark dark:text-secondary'
-                        : 'bg-danger/10 text-danger'
+                      bet.status === 'pending'
+                        ? 'bg-warning/10 text-orange-600 dark:text-warning'
+                        : bet.outcome === 'won'
+                          ? 'bg-secondary/10 text-secondary-dark dark:text-secondary'
+                          : 'bg-danger/10 text-danger'
                     }`}
                   >
-                    {bet.outcome === 'won' ? 'W' : 'L'}
+                    {bet.status === 'pending' ? <Clock className="size-4" aria-hidden="true" /> : bet.outcome === 'won' ? 'W' : 'L'}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-ink dark:text-white">
@@ -242,8 +245,8 @@ export function Dashboard() {
                     </p>
                     <p className="text-xs text-slate-400">{formatDateShort(bet.date)}</p>
                   </div>
-                  <span className={`text-sm font-bold ${bet.outcome === 'won' ? 'text-secondary' : 'text-danger'}`}>
-                    {bet.outcome === 'won' ? '+' : '-'}{formatGHS(bet.amount)}
+                  <span className={`text-sm font-bold ${bet.status === 'pending' ? 'text-warning' : bet.outcome === 'won' ? 'text-secondary' : 'text-danger'}`}>
+                    {bet.status === 'pending' ? formatGHS(bet.amount) : `${bet.outcome === 'won' ? '+' : '-'}${formatGHS(bet.amount)}`}
                   </span>
                 </motion.li>
               ))}

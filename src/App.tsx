@@ -9,6 +9,7 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 const Dashboard = lazy(() => import('@/pages/Dashboard').then((m) => ({ default: m.Dashboard })));
 const BettingLog = lazy(() => import('@/pages/BettingLog').then((m) => ({ default: m.BettingLog })));
+const Sportsbook = lazy(() => import('@/pages/Sportsbook').then((m) => ({ default: m.Sportsbook })));
 const Budget = lazy(() => import('@/pages/Budget').then((m) => ({ default: m.Budget })));
 const Savings = lazy(() => import('@/pages/Savings').then((m) => ({ default: m.Savings })));
 const AICoach = lazy(() => import('@/pages/AICoach').then((m) => ({ default: m.AICoach })));
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="/" element={<DashboardLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/betting-log" element={<BettingLog />} />
+              <Route path="/sportsbook" element={<Sportsbook />} />
               <Route path="/budget" element={<Budget />} />
               <Route path="/savings" element={<Savings />} />
               <Route path="/coach" element={<AICoach />} />

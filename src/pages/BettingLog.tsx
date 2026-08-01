@@ -361,12 +361,18 @@ export function BettingLog() {
                     <td className="py-3 pr-4">{bet.sport}</td>
                     <td className="py-3 pr-4 text-right font-bold text-ink dark:text-white">{formatGHS(bet.amount)}</td>
                     <td className="py-3 pr-4">
-                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                        bet.outcome === 'won' ? 'bg-secondary/10 text-secondary-dark dark:text-secondary' : 'bg-danger/10 text-danger'
-                      }`}>
-                        {bet.outcome === 'won' ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
-                        {bet.outcome}
-                      </span>
+                      {bet.status === 'pending' ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 px-2.5 py-0.5 text-xs font-bold text-orange-700 dark:text-warning">
+                          pending
+                        </span>
+                      ) : (
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                          bet.outcome === 'won' ? 'bg-secondary/10 text-secondary-dark dark:text-secondary' : 'bg-danger/10 text-danger'
+                        }`}>
+                          {bet.outcome === 'won' ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
+                          {bet.outcome}
+                        </span>
+                      )}
                     </td>
                     <td className="max-w-[180px] truncate py-3 pr-4 text-slate-400">{bet.notes || '—'}</td>
                     <td className="py-3 text-right">

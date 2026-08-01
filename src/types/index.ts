@@ -11,6 +11,7 @@ export interface UserProfile {
 }
 
 export type BetOutcome = 'won' | 'lost';
+export type BetStatus = 'pending' | 'settled';
 
 export interface BetRecord {
   id: string;
@@ -20,6 +21,48 @@ export interface BetRecord {
   amount: number;
   outcome: BetOutcome;
   notes: string;
+  status?: BetStatus;
+  source?: 'manual' | 'sportsbook';
+}
+
+export type MatchSport = 'Football' | 'Basketball' | 'Tennis';
+export type MatchStatus = 'upcoming' | 'live' | 'finished';
+export type SlipStatus = 'pending' | 'won' | 'lost';
+export type SlipMarket = 'home' | 'draw' | 'away';
+
+export interface Match {
+  id: string;
+  sport: MatchSport;
+  league: string;
+  homeTeam: string;
+  awayTeam: string;
+  kickoff: string;
+  homeOdds: number;
+  drawOdds: number | null;
+  awayOdds: number;
+  status: MatchStatus;
+  homeScore?: number;
+  awayScore?: number;
+  featured?: boolean;
+}
+
+export interface SlipSelection {
+  matchId: string;
+  team: string;
+  market: SlipMarket;
+  odds: number;
+}
+
+export interface SportsbookBet {
+  id: string;
+  betId: string;
+  selections: SlipSelection[];
+  stake: number;
+  combinedOdds: number;
+  potentialReturn: number;
+  placedAt: string;
+  status: SlipStatus;
+  payout?: number;
 }
 
 export interface SavingsGoal {

@@ -15,6 +15,7 @@ import {
   Settings,
   ShieldCheck,
   LogOut,
+  Ticket,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -41,6 +42,7 @@ export const NAV_SECTIONS: NavSection[] = [
     title: 'Tracking',
     items: [
       { label: 'Betting Log', path: '/betting-log', icon: ListChecks },
+      { label: 'Sportsbook', path: '/sportsbook', icon: Ticket },
       { label: 'Budget', path: '/budget', icon: Wallet },
       { label: 'Savings Goals', path: '/savings', icon: PiggyBank },
       { label: 'Challenges', path: '/challenges', icon: Trophy },

@@ -124,10 +124,6 @@ export function spentOnDate(bets: BetRecord[], iso: string): number {
   return bets.filter((b) => b.date === iso).reduce((s, b) => s + b.amount, 0);
 }
 
-export function betsOnDate(bets: BetRecord[], iso: string): number {
-  return bets.filter((b) => b.date === iso).length;
-}
-
 export function spentLastDays(bets: BetRecord[], days: number): number {
   const start = new Date();
   start.setDate(start.getDate() - (days - 1));
@@ -141,26 +137,15 @@ export function checkBetAgainstLimits(
   bets: BetRecord[],
   limits: BettingLimits,
   amount: number,
-  monthlyBudget: number,
+  _monthlyBudget: number,
 ): LimitCheck {
   if (!limits.enabled) return { ok: true, message: '' };
 
-  if (amount > limits.maxStake) {
-    return {
-      ok: false,
-      kind: 'maxStake',
-      message: `This stake is above your maximum of ${formatGHS(limits.maxStake)} per bet.`,
-      remaining: limits.maxStake,
-    };
-  }
-
   const today = todayISO();
   const todaySpent = spentOnDate(bets, today);
-  const todayCount = betsOnDate(bets, today);
   const weekSpent = spentLastDays(bets, 7);
-  const monthSpent = monthlySpending(bets);
 
-  if (todaySpent + amount > limits.daily) {
+  if (limits.daily > 0 && todaySpent + amount > limits.daily) {
     return {
       ok: false,
       kind: 'daily',
@@ -169,38 +154,12 @@ export function checkBetAgainstLimits(
     };
   }
 
-  if (weekSpent + amount > limits.weekly) {
+  if (limits.weekly > 0 && weekSpent + amount > limits.weekly) {
     return {
       ok: false,
       kind: 'weekly',
       message: `This bet would take you over your weekly limit of ${formatGHS(limits.weekly)}.`,
       remaining: Math.max(0, limits.weekly - weekSpent),
-    };
-  }
-
-  if (monthSpent + amount > limits.monthly) {
-    return {
-      ok: false,
-      kind: 'monthly',
-      message: `This bet would take you over your monthly limit of ${formatGHS(limits.monthly)}.`,
-      remaining: Math.max(0, limits.monthly - monthSpent),
-    };
-  }
-
-  if (monthlyBudget > 0 && monthSpent + amount > monthlyBudget) {
-    return {
-      ok: false,
-      kind: 'budget',
-      message: `This bet would push you over your monthly budget of ${formatGHS(monthlyBudget)}.`,
-      remaining: Math.max(0, monthlyBudget - monthSpent),
-    };
-  }
-
-  if (todayCount + 1 > limits.maxBetsPerDay) {
-    return {
-      ok: false,
-      kind: 'maxBets',
-      message: `You have reached your limit of ${limits.maxBetsPerDay} bets per day.`,
     };
   }
 

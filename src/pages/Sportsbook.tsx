@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { useMemo, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   Ticket,
   Clock,
@@ -102,6 +102,7 @@ export function Sportsbook() {
     open: false,
     slips: [],
   });
+  const slipRef = useRef<HTMLDivElement>(null);
 
   const monthSpent = useMemo(() => monthlySpending(bets), [bets]);
   const todaySpent = useMemo(() => spentOnDate(bets, todayISO()), [bets]);
@@ -139,6 +140,10 @@ export function Sportsbook() {
       if (existing && existing.market === market) return prev.filter((s) => s.matchId !== m.id);
       return [...prev.filter((s) => s.matchId !== m.id), { matchId: m.id, team, market, odds }];
     });
+  };
+
+  const goToSlip = () => {
+    slipRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const removeSelection = (matchId: string) => {
@@ -310,7 +315,7 @@ export function Sportsbook() {
         </div>
 
         <div>
-          <GlassCard hover={false} className="sticky top-24 p-5">
+          <GlassCard hover={false} ref={slipRef} className="sticky top-24 scroll-mt-24 p-5 pb-24 lg:pb-5">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="flex items-center gap-2 font-display text-base font-bold text-ink dark:text-white">
                 <Receipt className="size-4 text-primary-light" aria-hidden="true" /> Bet slip
@@ -436,6 +441,41 @@ export function Sportsbook() {
           </GlassCard>
         </div>
       </div>
+
+      <AnimatePresence>
+        {slip.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 80 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 80 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+            className="fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden"
+          >
+            <button
+              onClick={goToSlip}
+              className="glass-strong flex w-full items-center justify-between gap-3 rounded-2xl p-3 text-left shadow-glass-lg"
+            >
+              <span className="flex items-center gap-2.5">
+                <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary-light">
+                  <Receipt className="size-4" aria-hidden="true" />
+                </span>
+                <span>
+                  <span className="block text-xs font-bold text-ink dark:text-white">
+                    {slip.length} selection{slip.length === 1 ? '' : 's'} · odds{' '}
+                    <span className="text-primary-light">{combinedOdds.toFixed(2)}</span>
+                  </span>
+                  <span className="block text-[11px] text-slate-400">
+                    {stakeNum > 0 ? `Potential ${formatGHS(potential, 2)} · ` : ''}Tap to place your bet
+                  </span>
+                </span>
+              </span>
+              <span className="flex items-center gap-1 rounded-xl bg-gradient-to-r from-primary to-primary-light px-3.5 py-2 text-xs font-bold text-white shadow-md shadow-primary/20">
+                Place bet <Zap className="size-3.5" aria-hidden="true" />
+              </span>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <GlassCard hover={false} className="mt-6 p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">

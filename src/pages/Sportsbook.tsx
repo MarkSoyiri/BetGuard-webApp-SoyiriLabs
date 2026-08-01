@@ -255,8 +255,8 @@ export function Sportsbook() {
       >
         <ShieldCheck className="size-4 shrink-0 text-primary-light" aria-hidden="true" />
         <p className="sm:hidden">
-          Practice sportsbook — demo mode, no real money
-          {greenEnabled ? ' · 2% of stakes fund GreenBet' : ''}.
+          Every bet is logged automatically and counts toward your monthly budget.
+          {greenEnabled && <> 2% of every stake funds GreenBet environmental projects.</>}
         </p>
         <p className="hidden sm:block">
           This is a <strong>practice sportsbook</strong> for learning good habits. Every bet you place is

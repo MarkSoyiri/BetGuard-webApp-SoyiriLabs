@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Ticket,
@@ -14,6 +14,7 @@ import {
   Trash2,
   Zap,
   Receipt,
+  Eye,
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageTransition';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -87,7 +88,7 @@ function OddsButton({
 }
 
 export function Sportsbook() {
-  const { matches, slips, placeBet, removeSlip, clearSlips, simulateResults } = useSportsbook();
+  const { matches, slips, placeBet, removeSlip, clearSlips, simulateResults, nextRefreshAt } = useSportsbook();
   const { bets } = useBets();
   const { monthlyBudget } = useBudget();
   const { limits, isCooldownActive, cooldownEndsAt } = useLimits();
@@ -102,7 +103,23 @@ export function Sportsbook() {
     open: false,
     slips: [],
   });
+  const [viewingSlip, setViewingSlip] = useState<SportsbookBet | null>(null);
   const slipRef = useRef<HTMLDivElement>(null);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1_000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    setSlip((prev) => prev.filter((s) => matches.some((m) => m.id === s.matchId)));
+  }, [matches]);
+
+  const untilRefresh = Math.max(0, new Date(nextRefreshAt).getTime() - now);
+  const refreshM = Math.floor(untilRefresh / 60_000);
+  const refreshS = Math.floor((untilRefresh % 60_000) / 1000);
+  const refreshLabel = untilRefresh <= 0 ? 'Refreshing now' : `New fixtures in ${refreshM}m ${refreshS}s`;
 
   const monthSpent = useMemo(() => monthlySpending(bets), [bets]);
   const todaySpent = useMemo(() => spentOnDate(bets, todayISO()), [bets]);
@@ -204,9 +221,14 @@ export function Sportsbook() {
         title="Sportsbook"
         subtitle="Browse demo fixtures, build a bet slip and settle results — no real money involved."
         action={
-          <Chip tone="primary">
-            <ShieldCheck className="size-3" aria-hidden="true" /> Demo mode · no real money
-          </Chip>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Chip tone="secondary">
+              <Clock className="size-3" aria-hidden="true" /> {refreshLabel}
+            </Chip>
+            <Chip tone="primary">
+              <ShieldCheck className="size-3" aria-hidden="true" /> Demo mode · no real money
+            </Chip>
+          </div>
         }
       />
 
@@ -546,6 +568,13 @@ export function Sportsbook() {
                   )}
                 </span>
                 <button
+                  onClick={() => setViewingSlip(s)}
+                  className="rounded-lg p-1.5 text-slate-400 transition hover:bg-primary/10 hover:text-primary-light"
+                  aria-label="View slip details"
+                >
+                  <Eye className="size-4" />
+                </button>
+                <button
                   onClick={() => removeSlip(s.id)}
                   className="rounded-lg p-1.5 text-slate-400 transition hover:bg-danger/10 hover:text-danger"
                   aria-label="Remove slip"
@@ -588,6 +617,79 @@ export function Sportsbook() {
         </div>
       </Modal>
 
+      <Modal
+        open={viewingSlip !== null}
+        onClose={() => setViewingSlip(null)}
+        title="Bet details"
+        subtitle={viewingSlip ? formatDate(viewingSlip.placedAt) : undefined}
+      >
+        {viewingSlip && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/60">
+              <div>
+                <p className="text-xs text-slate-400">Stake</p>
+                <p className="font-display text-2xl font-bold text-ink dark:text-white">
+                  {formatGHS(viewingSlip.stake)}
+                </p>
+              </div>
+              {viewingSlip.status === 'pending' ? (
+                <Chip tone="warning">Pending</Chip>
+              ) : viewingSlip.status === 'won' ? (
+                <Chip tone="secondary">Won</Chip>
+              ) : (
+                <Chip tone="danger">Lost</Chip>
+              )}
+            </div>
+
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Selections ({viewingSlip.selections.length})
+              </p>
+              <ul className="space-y-2">
+                {viewingSlip.selections.map((sel) => {
+                  const m = matches.find((x) => x.id === sel.matchId);
+                  return (
+                    <li
+                      key={sel.matchId}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 dark:border-slate-700"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-ink dark:text-white">{sel.team}</p>
+                        <p className="truncate text-xs text-slate-400">
+                          {m ? `${m.homeTeam} vs ${m.awayTeam} · ${marketLabel(sel.market)}` : 'Fixture no longer available'}
+                        </p>
+                      </div>
+                      <span className="shrink-0 text-sm font-bold text-primary-light">{sel.odds.toFixed(2)}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+              <div>
+                <dt className="text-xs text-slate-400">Combined odds</dt>
+                <dd className="mt-0.5 font-semibold text-ink dark:text-white">{viewingSlip.combinedOdds.toFixed(2)}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-slate-400">Potential return</dt>
+                <dd className="mt-0.5 font-semibold text-secondary">{formatGHS(viewingSlip.potentialReturn)}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-slate-400">Placed</dt>
+                <dd className="mt-0.5 font-semibold text-ink dark:text-white">{formatDate(viewingSlip.placedAt)}</dd>
+              </div>
+              {viewingSlip.status === 'won' && (
+                <div>
+                  <dt className="text-xs text-slate-400">Payout</dt>
+                  <dd className="mt-0.5 font-semibold text-secondary">{formatGHS(viewingSlip.payout ?? 0)}</dd>
+                </div>
+              )}
+            </dl>
+          </div>
+        )}
+      </Modal>
+
       <PostBetInsight
         open={insight.open}
         slips={insight.slips}
@@ -595,6 +697,12 @@ export function Sportsbook() {
       />
     </div>
   );
+}
+
+function marketLabel(market: SlipMarket): string {
+  if (market === 'home') return 'Home (1)';
+  if (market === 'draw') return 'Draw (X)';
+  return 'Away (2)';
 }
 
 function MatchCard({

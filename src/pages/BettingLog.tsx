@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, ListChecks, TrendingUp, TrendingDown, ClipboardList, Eraser } from 'lucide-react';
+import { Plus, Pencil, Trash2, ListChecks, TrendingUp, TrendingDown, ClipboardList, Eraser, Eye } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageTransition';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
@@ -57,6 +57,7 @@ export function BettingLog() {
   const [editing, setEditing] = useState<BetRecord | null>(null);
   const [editForm, setEditForm] = useState<FormState>(EMPTY);
   const [deleting, setDeleting] = useState<BetRecord | null>(null);
+  const [viewing, setViewing] = useState<BetRecord | null>(null);
 
   const stats = useMemo(() => computeStats(bets), [bets]);
 
@@ -378,6 +379,13 @@ export function BettingLog() {
                     <td className="py-3 text-right">
                       <div className="flex justify-end gap-1.5">
                         <button
+                          onClick={() => setViewing(bet)}
+                          className="rounded-lg p-2 text-slate-400 transition hover:bg-primary/10 hover:text-primary-light"
+                          aria-label={`View bet on ${formatDate(bet.date)}`}
+                        >
+                          <Eye className="size-4" />
+                        </button>
+                        <button
                           onClick={() => openEdit(bet)}
                           className="rounded-lg p-2 text-slate-400 transition hover:bg-primary/10 hover:text-primary-light"
                           aria-label={`Edit bet on ${formatDate(bet.date)}`}
@@ -437,6 +445,66 @@ export function BettingLog() {
             <Button type="submit">Save changes</Button>
           </div>
         </form>
+      </Modal>
+
+      <Modal
+        open={viewing !== null}
+        onClose={() => setViewing(null)}
+        title="Bet details"
+        subtitle={viewing ? formatDate(viewing.date) : undefined}
+      >
+        {viewing && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/60">
+              <div>
+                <p className="text-xs text-slate-400">Amount</p>
+                <p className="font-display text-2xl font-bold text-ink dark:text-white">
+                  {formatGHS(viewing.amount)}
+                </p>
+              </div>
+              {viewing.status === 'pending' ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 px-2.5 py-1 text-xs font-bold text-orange-700 dark:text-warning">
+                  pending
+                </span>
+              ) : (
+                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${
+                  viewing.outcome === 'won' ? 'bg-secondary/10 text-secondary-dark dark:text-secondary' : 'bg-danger/10 text-danger'
+                }`}>
+                  {viewing.outcome === 'won' ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
+                  {viewing.outcome}
+                </span>
+              )}
+            </div>
+
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+              <div>
+                <dt className="text-xs text-slate-400">Platform</dt>
+                <dd className="mt-0.5 font-semibold text-ink dark:text-white">{viewing.platform}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-slate-400">Sport</dt>
+                <dd className="mt-0.5 font-semibold text-ink dark:text-white">{viewing.sport}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-slate-400">Date</dt>
+                <dd className="mt-0.5 font-semibold text-ink dark:text-white">{formatDate(viewing.date)}</dd>
+              </div>
+              {viewing.source && (
+                <div>
+                  <dt className="text-xs text-slate-400">Source</dt>
+                  <dd className="mt-0.5 font-semibold capitalize text-ink dark:text-white">{viewing.source}</dd>
+                </div>
+              )}
+            </dl>
+
+            <div>
+              <p className="mb-1.5 text-xs text-slate-400">Notes</p>
+              <p className="rounded-xl bg-slate-50 p-3 text-sm leading-relaxed text-slate-600 dark:bg-slate-800/60 dark:text-slate-300">
+                {viewing.notes || 'No notes for this bet.'}
+              </p>
+            </div>
+          </div>
+        )}
       </Modal>
 
       <ConfirmDialog

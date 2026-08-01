@@ -64,8 +64,8 @@ function twoWayOdds(rand: () => number): [number, number] {
   return [home, Math.min(9, away)];
 }
 
-export function generateMatches(): Match[] {
-  const seed = Number(todayISO().replace(/-/g, ''));
+export function generateMatches(cycleSeed?: number): Match[] {
+  const seed = cycleSeed ?? Number(todayISO().replace(/-/g, ''));
   const rand = mulberry32(seed);
   const matches: Match[] = [];
   let seq = 0;
@@ -80,7 +80,7 @@ export function generateMatches(): Match[] {
   const addFootball = (league: string, teams: string[], dayOffset: number, baseHour: number) => {
     const [home, away] = pickPair(rand, teams);
     matches.push({
-      id: `match-${todayISO()}-${seq++}`,
+      id: `match-${seed}-${seq++}`,
       sport: 'Football',
       league,
       homeTeam: home,
@@ -104,7 +104,7 @@ export function generateMatches(): Match[] {
     const [home, away] = pickPair(rand, teams);
     const [homeOdds, awayOdds] = twoWayOdds(rand);
     matches.push({
-      id: `match-${todayISO()}-${seq++}`,
+      id: `match-${seed}-${seq++}`,
       sport,
       league,
       homeTeam: home,

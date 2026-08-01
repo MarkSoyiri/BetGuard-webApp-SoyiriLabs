@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { generateMatches } from '@/data/matches';
 import { useBets } from './BetContext';
@@ -17,11 +17,26 @@ interface SportsbookContextValue {
   removeSlip: (id: string) => void;
   clearSlips: () => void;
   simulateResults: () => SportsbookBet[];
+  nextRefreshAt: string;
 }
 
 const SportsbookContext = createContext<SportsbookContextValue | undefined>(undefined);
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
+
+const CYCLE_MS = 5 * 60 * 1000;
+
+function cycleStart(now = Date.now()): number {
+  return Math.floor(now / CYCLE_MS) * CYCLE_MS;
+}
+
+function cycleBucket(now = Date.now()): string {
+  return new Date(cycleStart(now)).toISOString();
+}
+
+function bucketSeed(bucket: string): number {
+  return Number(bucket.replace(/\D/g, ''));
+}
 
 function matchWinner(m: Match): 'home' | 'draw' | 'away' | null {
   if (m.status !== 'finished' || m.homeScore === undefined || m.awayScore === undefined) return null;
@@ -57,8 +72,40 @@ export function SportsbookProvider({ children }: { children: ReactNode }) {
     matches: generateMatches(),
   });
   const [slips, setSlips] = usePersistedState<SportsbookBet[]>('sportsbook-slips', []);
+  const [bucket, setBucket] = useState(() => cycleBucket());
+  const lastSettled = useRef(bucket);
 
-  const matches = store.seed === todayISO() ? store.matches : generateMatches();
+  useEffect(() => {
+    const id = setInterval(() => setBucket(cycleBucket()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const seed = bucketSeed(bucket);
+  const matches = store.seed === bucket ? store.matches : generateMatches(seed);
+
+  useEffect(() => {
+    if (store.seed !== bucket) {
+      setStore({ seed: bucket, matches: generateMatches(seed) });
+    }
+  }, [bucket, seed, store.seed, setStore]);
+
+  useEffect(() => {
+    if (lastSettled.current === bucket) return;
+    lastSettled.current = bucket;
+    const freshIds = new Set(matches.map((m) => m.id));
+    const orphaned = slips.filter(
+      (s) => s.status === 'pending' && !s.selections.every((sel) => freshIds.has(sel.matchId)),
+    );
+    if (orphaned.length === 0) return;
+    orphaned.forEach((s) => updateBet(s.betId, { outcome: 'lost' as BetOutcome, status: 'settled' }));
+    setSlips((prev) =>
+      prev.map((s) =>
+        orphaned.some((o) => o.id === s.id) ? { ...s, status: 'lost' as const, payout: 0 } : s,
+      ),
+    );
+  }, [bucket, matches, slips, setSlips, updateBet]);
+
+  const nextRefreshAt = new Date(cycleStart() + CYCLE_MS).toISOString();
 
   const placeBet = useCallback(
     (selections: SlipSelection[], stake: number): SportsbookBet | null => {
@@ -150,7 +197,7 @@ export function SportsbookProvider({ children }: { children: ReactNode }) {
 
   return (
     <SportsbookContext.Provider
-      value={{ matches, slips, placeBet, removeSlip, clearSlips, simulateResults }}
+      value={{ matches, slips, placeBet, removeSlip, clearSlips, simulateResults, nextRefreshAt }}
     >
       {children}
     </SportsbookContext.Provider>

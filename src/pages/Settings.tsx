@@ -15,18 +15,25 @@ import {
   Timer,
   ShieldAlert,
   Leaf,
+  Smartphone,
+  WifiOff,
+  HardDrive,
+  RefreshCw,
+  Database,
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageTransition';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { InstallButton } from '@/components/pwa/InstallButton';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useUser } from '@/contexts/UserContext';
 import { useBudget } from '@/contexts/BudgetContext';
 import { useLimits } from '@/contexts/LimitsContext';
 import { useGreenBet } from '@/contexts/GreenBetContext';
 import { useToast } from '@/contexts/ToastContext';
+import { usePWA } from '@/contexts/PWAContext';
 import { clearAllStorage, exportAllStorage, importAllStorage } from '@/utils/storage';
 import { formatDate, formatGHS } from '@/utils/format';
 
@@ -37,6 +44,16 @@ export function Settings() {
   const { limits, setLimits, startCooldown, cancelCooldown, isCooldownActive, cooldownEndsAt } = useLimits();
   const { enabled: greenEnabled, toggleEnabled, greenScore, scoreBand, totalContributed, resetGreenData } = useGreenBet();
   const { toast } = useToast();
+  const {
+    isInstalled,
+    canInstall,
+    isIOS,
+    appVersion,
+    storageInfo,
+    offlineReady,
+    swActive,
+    cacheEntries,
+  } = usePWA();
 
   const [name, setName] = useState(profile?.name ?? '');
   const [email, setEmail] = useState(profile?.email ?? '');
@@ -147,6 +164,14 @@ export function Settings() {
   const num = (v: string) => {
     const n = Number(v);
     return Number.isNaN(n) || n < 0 ? 0 : Math.round(n);
+  };
+
+  const formatBytes = (n: number | null) => {
+    if (n == null) return '—';
+    if (n >= 1024 * 1024 * 1024) return `${(n / 1024 / 1024 / 1024).toFixed(1)} GB`;
+    if (n >= 1024 * 1024) return `${(n / 1024 / 1024).toFixed(1)} MB`;
+    if (n >= 1024) return `${(n / 1024).toFixed(1)} KB`;
+    return `${Math.round(n)} B`;
   };
 
   const handleSaveLimits = () => {
@@ -424,6 +449,85 @@ export function Settings() {
               Reset green data
             </Button>
           </div>
+        </GlassCard>
+
+        <GlassCard className="p-6">
+          <h3 className="mb-4 flex items-center gap-2 font-display text-base font-bold text-ink dark:text-white">
+            <Smartphone className="size-5 text-primary-light" aria-hidden="true" /> App Installation
+          </h3>
+
+          <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                {isInstalled ? (
+                  <RefreshCw className="size-5" aria-hidden="true" />
+                ) : (
+                  <Download className="size-5" aria-hidden="true" />
+                )}
+              </div>
+              <div className="min-w-0 text-left">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  Installation status
+                </p>
+                <p className="mt-0.5 text-sm font-bold text-ink dark:text-white">
+                  {isInstalled ? 'Installed' : canInstall ? 'Available' : 'Not available'}
+                </p>
+              </div>
+            </div>
+            <InstallButton compact={false} />
+          </div>
+
+          {isIOS && !isInstalled && (
+            <p className="mt-3 flex items-start gap-1.5 rounded-2xl bg-primary/[0.04] p-3 text-xs leading-relaxed text-slate-600 dark:bg-primary-light/10 dark:text-slate-300">
+              <Smartphone className="mt-0.5 size-4 shrink-0 text-primary-light" aria-hidden="true" />
+              On iPhone or iPad, tap the Share button in your browser and choose{' '}
+              <strong>Add to Home Screen</strong> to install BetGuard.
+            </p>
+          )}
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 dark:bg-slate-800/60">
+              <Database className="size-4 shrink-0 text-slate-400" aria-hidden="true" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Current version</p>
+                <p className="mt-0.5 text-sm font-bold text-ink dark:text-white">v{appVersion}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 dark:bg-slate-800/60">
+              <HardDrive className="size-4 shrink-0 text-slate-400" aria-hidden="true" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Storage usage</p>
+                <p className="mt-0.5 text-sm font-bold text-ink dark:text-white">
+                  {storageInfo.supported
+                    ? `${formatBytes(storageInfo.usage)} of ${formatBytes(storageInfo.quota)}`
+                    : 'Unavailable in this browser'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 dark:bg-slate-800/60">
+              <WifiOff className="size-4 shrink-0 text-slate-400" aria-hidden="true" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Offline support</p>
+                <p className="mt-0.5 text-sm font-bold text-ink dark:text-white">
+                  {offlineReady ? 'Ready' : swActive ? 'Active' : 'Not registered'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 dark:bg-slate-800/60">
+              <RefreshCw className="size-4 shrink-0 text-slate-400" aria-hidden="true" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Cache status</p>
+                <p className="mt-0.5 text-sm font-bold text-ink dark:text-white">
+                  {cacheEntries != null ? `${cacheEntries} assets cached` : 'Checking…'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <p className="mt-4 text-xs leading-relaxed text-slate-400">
+            Install BetGuard for a faster, full-screen experience with quick access from your home
+            screen. Your data stays on this device.
+          </p>
         </GlassCard>
 
         <GlassCard className="p-6">

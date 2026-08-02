@@ -3,6 +3,7 @@ import { Menu, Bell, Sun, Moon, Search, Ticket } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { useUser } from '@/contexts/UserContext';
+import { InstallButton } from '@/components/pwa/InstallButton';
 import { useActiveSection } from './nav';
 import { prefetchPage } from '@/utils/pagePrefetch';
 
@@ -60,6 +61,8 @@ export function Navbar({ onOpenMobile }: NavbarProps) {
         >
           <Ticket className="size-5" />
         </Link>
+
+        <InstallButton iconOnly />
 
         <Link
           to="/notifications"

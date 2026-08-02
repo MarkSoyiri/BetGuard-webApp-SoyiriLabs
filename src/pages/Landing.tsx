@@ -29,6 +29,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { SectionTitle } from '@/components/ui/SectionTitle';
 import { Footer } from '@/components/layout/Footer';
+import { InstallButton } from '@/components/pwa/InstallButton';
 import { useUser } from '@/contexts/UserContext';
 import { ChartTooltip, AXIS_TICK, gridStyle, COLORS } from '@/components/charts/chartUtils';
 
@@ -227,6 +228,7 @@ export function Landing() {
               <Button to="/education" size="lg" variant="outline" icon={<GraduationCap className="size-5" />}>
                 Learn More
               </Button>
+              <InstallButton />
             </div>
             <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium text-slate-500 dark:text-slate-400">
               {['No credit card', 'Free forever', 'Your data stays on your device'].map((t) => (

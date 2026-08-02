@@ -12,33 +12,40 @@ import { AchievementProvider } from './AchievementContext';
 import { GreenBetProvider } from './GreenBetContext';
 import { ChallengeProvider } from './ChallengeContext';
 import { ToastProvider } from './ToastContext';
+import { PWAProvider } from './PWAContext';
+import { PWAChrome } from '@/components/pwa/PWAChrome';
 
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <UserProvider>
-          <BudgetProvider>
-            <BetProvider>
-              <SportsbookProvider>
-                <LimitsProvider>
-                  <GoalProvider>
-                    <AchievementProvider>
-                      <NotificationProvider>
-                        <GreenBetProvider>
-                          <ChallengeProvider>
-                            <CommunityProvider>{children}</CommunityProvider>
-                          </ChallengeProvider>
-                        </GreenBetProvider>
-                      </NotificationProvider>
-                    </AchievementProvider>
-                  </GoalProvider>
-                </LimitsProvider>
-              </SportsbookProvider>
-            </BetProvider>
-          </BudgetProvider>
-        </UserProvider>
-      </ToastProvider>
-    </ThemeProvider>
+    <PWAProvider>
+      <ThemeProvider>
+        <ToastProvider>
+          <UserProvider>
+            <BudgetProvider>
+              <BetProvider>
+                <SportsbookProvider>
+                  <LimitsProvider>
+                    <GoalProvider>
+                      <AchievementProvider>
+                        <NotificationProvider>
+                          <GreenBetProvider>
+                            <ChallengeProvider>
+                              <CommunityProvider>
+                                {children}
+                                <PWAChrome />
+                              </CommunityProvider>
+                            </ChallengeProvider>
+                          </GreenBetProvider>
+                        </NotificationProvider>
+                      </AchievementProvider>
+                    </GoalProvider>
+                  </LimitsProvider>
+                </SportsbookProvider>
+              </BetProvider>
+            </BudgetProvider>
+          </UserProvider>
+        </ToastProvider>
+      </ThemeProvider>
+    </PWAProvider>
   );
 }

@@ -247,25 +247,19 @@ export function Register() {
           )}
         </AnimatePresence>
 
-        <div className="flex items-center justify-between gap-3 pt-1">
+        <div className="flex items-center gap-3 pt-1">
           {step === 1 ? (
-            <>
-              <Link
-                to="/login"
-                className="text-sm font-semibold text-slate-500 transition hover:text-ink dark:text-slate-400 dark:hover:text-white"
-              >
-                Back to Login
-              </Link>
-              <Button type="button" size="lg" icon={<ArrowRight className="size-4" aria-hidden="true" />} onClick={handleContinue}>
+            <div className="flex w-full justify-end">
+              <Button type="button" size="md" icon={<ArrowRight className="size-3.5" aria-hidden="true" />} onClick={handleContinue}>
                 Continue
               </Button>
-            </>
+            </div>
           ) : (
             <>
-              <Button type="button" variant="ghost" size="lg" icon={<ArrowLeft className="size-4" aria-hidden="true" />} onClick={handleBack}>
+              <Button type="button" variant="ghost" size="md" icon={<ArrowLeft className="size-3.5" aria-hidden="true" />} onClick={handleBack}>
                 Back
               </Button>
-              <Button type="submit" size="lg" loading={loading}>
+              <Button type="submit" size="md" loading={loading}>
                 Create Account
               </Button>
             </>

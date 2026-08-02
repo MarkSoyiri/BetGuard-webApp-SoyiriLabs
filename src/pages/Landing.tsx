@@ -153,7 +153,7 @@ export function Landing() {
       </div>
 
       {/* Landing nav */}
-      <header className="sticky top-0 z-50 border-b border-slate-200/60 bg-white/70 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/70">
+      <header className="sticky top-0 z-50 border-b border-slate-200/60 bg-white/70 backdrop-blur-xl pt-[env(safe-area-inset-top)] dark:border-slate-800 dark:bg-slate-950/70">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-6">
           <Link to="/" className="flex items-center gap-2.5">
             <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary shadow-lg shadow-primary/30">

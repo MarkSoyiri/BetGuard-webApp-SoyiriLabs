@@ -12,9 +12,12 @@ BetGuard is a responsive single-page web app that helps people understand their 
 - **GreenBet 🌱** — every demo stake sets aside 2% for mock environmental projects, feeding a 0–100 Green Score, Green Points, eco challenges, badges and a Ghana-focused green impact page.
 - **Challenge Engine 🏆** — 21 challenges auto-tracked from your real activity (bets, budget, limits, health, GreenBet, education, savings, breaks, coach). No manual logging or claiming — progress updates live, rewards are granted automatically, and the AI Coach points you at your closest goal.
 - **Responsible betting system** — enforced daily/weekly/monthly/max-stake/max-bets limits, a 0–100 health score, betting breaks (cooldowns) and block-style interventions when a bet breaches a limit.
+- **Installable PWA** — install BetGuard on any phone or desktop (standalone app, home-screen icon, splash screen) and use it fully offline: the app shell, fonts, icons and images are pre-cached by a service worker.
 - **Budget, savings goals, challenges, achievements, community, education center, AI coach and risk assessment.**
 
 ## Recent updates
+
+- **Installable PWA with offline support** — BetGuard can now be installed as a native app on Android, iOS, Windows and macOS. A service worker pre-caches the app shell, fonts and icons (with a runtime cache for Google Fonts) so the app works offline; an offline banner appears when you lose connectivity. The install flow is fully in-app: an install banner with Install / Maybe Later on first visit, an "Install App" button on the Landing page, Navbar and Settings, first-install welcome modal, and an update toast when a new version is deployed. The Settings → App Installation card shows install status, version, storage usage, offline support and how many assets are cached. Icons were generated from the brand SVG (`public/betguard-icon.svg`) and iOS-specific meta tags are included.
 
 - **Challenge Engine** — challenges are now evaluated automatically from live app data instead of manual "log progress" taps. A central provider (`src/contexts/ChallengeContext.tsx`) reads bets, budget, limits, goals, risk level, health score, GreenBet metrics, education reads/quizzes, savings contributions, cooldown completions and coach messages to score 21 challenges across Betting, Green, Education and Savings. Progress bars, percentage chips and ETA estimates update live; completing one auto-grants the reward (Green Points, badge, health boost, notification and celebration) exactly once, and resets Daily/Weekly targets on schedule. The Dashboard gained an "Active Challenges" widget (top 3 by progress), the AI Coach now recommends your closest challenge and answers "Which challenge should I focus on?", and Post-bet insights show the health-score bonus. Demo bets are excluded from challenge progress just like the limit checks.
 - **GreenBet** — a planet-friendly twist on the demo sportsbook. 2% of every stake is set aside automatically, pooled into six environmental projects (tree planting, recycling, clean water, education, urban parks, climate awareness) with animated funding progress, supporters and funded states. Contributions earn Green Points, feed a weighted Green Score (health, budget, savings, challenges, contributions) with tiered bands, and unlock green badges. Green challenges award points, the AI coach answers planet questions, the dashboard shows a GreenBet widget, post-bet insights show the contribution, and Settings lets you toggle, reset and track it.
@@ -40,7 +43,8 @@ BetGuard is a responsive single-page web app that helps people understand their 
 | GreenBet | 2% of stakes → environmental projects, Green Score, Green Points, impact history & Ghana green priorities |
 | Achievements | Unlockable badges tied to behaviour (incl. green/eco badges) |
 | Notifications | Warning / achievement / info feed |
-| Settings | Profile, budget, notification prefs, responsible limits, betting breaks, data export/import/clear |
+| Settings | Profile, budget, notification prefs, responsible limits, betting breaks, data export/import/clear, app installation status |
+| PWA | Installable standalone app, offline support, update notifications, first-install welcome flow |
 | Admin | Demo-only admin dashboard |
 
 ## Responsible betting system
@@ -59,6 +63,7 @@ BetGuard is a responsive single-page web app that helps people understand their 
 - Framer Motion (animations)
 - Recharts (charts)
 - lucide-react (icons)
+- vite-plugin-pwa (manifest, service worker, offline caching, install/update hooks)
 
 ## Getting started
 
@@ -76,6 +81,16 @@ npm run dev      # start Vite dev server
 | `npm run preview` | Preview the production build |
 | `npm run typecheck` | Run `tsc --noEmit` |
 
+To regenerate the PWA icons from `public/betguard-icon.svg` (only needed if you change the logo): `npx pwa-assets-generator` (config in `pwa-assets.config.ts`).
+
+### Installing the app
+
+- **Android / Chrome**: open the live demo, tap the install prompt in the address bar, or use the "Install App" button in the banner, Navbar or Settings.
+- **iOS (Safari)**: open the demo, tap **Share → Add to Home Screen**. The install banner is not shown on iOS (Safari doesn't support the install prompt), but the Settings page shows this hint.
+- **Desktop (Chrome/Edge)**: the install icon in the address bar, or the in-app "Install App" button.
+
+Once installed, BetGuard launches in its own window and works offline.
+
 ## Project structure
 
 ```
@@ -86,9 +101,11 @@ src/
     layout/               # Sidebar, Navbar, Footer, nav config
     ui/                   # Button, Modal, Card, Badge, charts, gauges, etc.
     charts/               # Recharts helpers & shared chart styling
+    pwa/                  # InstallBanner, UpdateToast, OfflineBanner, WelcomeModal, InstallButton, PWAChrome
     PostBetInsight.tsx    # Post-settlement insights modal
   contexts/               # React context providers (state + logic)
     AppProviders.tsx      # Provider composition & order
+    PWAContext.tsx        # Install / offline / update / storage / welcome state
     BetContext.tsx        # Bet records
     BudgetContext.tsx     # Monthly budget
     LimitsContext.tsx     # Responsible-betting limits & cooldowns
@@ -104,6 +121,8 @@ src/
   utils/                  # formatting, stats/health logic, challenge scoring, localStorage helpers
   hooks/                  # usePersistedState
 ```
+
+Root config: `vite.config.ts` (includes `VitePWA` manifest + service worker config, `__APP_VERSION__`), `pwa-assets.config.ts` (icon generation). Generated PWA icons live in `public/` (`pwa-*.png`, `maskable-icon-512x512.png`, `apple-touch-icon-180x180.png`, `favicon.ico`).
 
 ## Data & persistence
 

@@ -17,7 +17,7 @@ export function OfflineBanner() {
           role="status"
           aria-live="polite"
         >
-          <div className="flex items-center justify-center gap-2 bg-gradient-to-r from-primary-dark to-primary px-4 py-2 text-center text-xs font-semibold text-white shadow-md">
+          <div className="flex items-center justify-center gap-2 bg-gradient-to-r from-primary-dark to-primary px-4 pt-[env(safe-area-inset-top)] pb-2 text-center text-xs font-semibold text-white shadow-md">
             <WifiOff className="size-3.5 shrink-0" aria-hidden="true" />
             <span>
               You're offline. Your saved data is still available. Connect to the internet to

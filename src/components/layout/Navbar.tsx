@@ -19,7 +19,7 @@ export function Navbar({ onOpenMobile }: NavbarProps) {
   const active = useActiveSection(location.pathname);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/60 bg-white/70 backdrop-blur-xl dark:border-slate-700/60 dark:bg-slate-900/70">
+    <header className="sticky top-0 z-50 border-b border-slate-200/60 bg-white/70 backdrop-blur-xl pt-[env(safe-area-inset-top)] dark:border-slate-700/60 dark:bg-slate-900/70">
       <div className="flex h-16 items-center gap-3 px-4 md:px-8">
         <button
           onClick={onOpenMobile}

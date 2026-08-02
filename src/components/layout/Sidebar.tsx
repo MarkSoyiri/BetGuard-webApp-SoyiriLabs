@@ -190,7 +190,7 @@ export function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
   return (
     <>
       <aside
-        className={`hidden shrink-0 flex-col border-r border-slate-200/60 bg-white/70 backdrop-blur-xl transition-all duration-300 md:flex dark:border-slate-700/60 dark:bg-slate-900/70 ${
+        className={`hidden shrink-0 flex-col border-r border-slate-200/60 bg-white/70 backdrop-blur-xl transition-all duration-300 pt-[env(safe-area-inset-top)] md:flex dark:border-slate-700/60 dark:bg-slate-900/70 ${
           collapsed ? 'w-20' : 'w-64'
         } sticky top-0 h-screen`}
       >
@@ -214,7 +214,7 @@ export function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
             animate={{ x: 0 }}
             exit={{ x: -280 }}
             transition={{ type: 'spring', stiffness: 300, damping: 32 }}
-            className="absolute inset-y-0 left-0 w-72 bg-white shadow-2xl dark:bg-slate-900"
+            className="absolute inset-y-0 left-0 w-72 bg-white pt-[env(safe-area-inset-top)] shadow-2xl dark:bg-slate-900"
           >
             <SidebarContent collapsed={false} onToggleCollapse={onToggleCollapse} onNavigate={onCloseMobile} />
           </motion.aside>

@@ -14,7 +14,6 @@ import {
   Trash2,
   Zap,
   Receipt,
-  Eye,
   Leaf,
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageTransition';
@@ -577,52 +576,107 @@ export function Sportsbook() {
             message="Build a slip on the left and place your first demo bet to see it here."
           />
         ) : (
-          <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-            {slips.map((s) => (
-              <li key={s.id} className="flex flex-wrap items-center gap-3 py-3">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-ink dark:text-white">
-                    {s.selections.map((sel) => sel.team).join(' + ')}
-                  </p>
-                  <p className="mt-0.5 text-xs text-slate-400">
-                    {formatDate(s.placedAt)} · {s.selections.length}{' '}
-                    {s.selections.length === 1 ? 'selection' : 'selections'} @{' '}
-                    {s.combinedOdds.toFixed(2)}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-ink dark:text-white">{formatGHS(s.stake)}</p>
-                  {s.status !== 'pending' && (
-                    <p className="text-[11px] text-slate-400">
-                      {s.status === 'won' ? `Payout ${formatGHS(s.payout ?? 0)}` : 'No payout'}
-                    </p>
-                  )}
-                </div>
-                <span className="flex w-24 justify-end">
-                  {s.status === 'pending' ? (
-                    <Chip tone="warning">Pending</Chip>
-                  ) : s.status === 'won' ? (
-                    <Chip tone="secondary">Won</Chip>
-                  ) : (
-                    <Chip tone="danger">Lost</Chip>
-                  )}
-                </span>
-                <button
-                  onClick={() => setViewingSlip(s)}
-                  className="rounded-lg p-1.5 text-slate-400 transition hover:bg-primary/10 hover:text-primary-light"
-                  aria-label="View slip details"
-                >
-                  <Eye className="size-4" />
-                </button>
-                <button
-                  onClick={() => removeSlip(s.id)}
-                  className="rounded-lg p-1.5 text-slate-400 transition hover:bg-danger/10 hover:text-danger"
-                  aria-label="Remove slip"
-                >
-                  <Trash2 className="size-4" />
-                </button>
-              </li>
-            ))}
+          <ul className="space-y-3">
+            {slips.map((s) => {
+              const isPending = s.status === 'pending';
+              const isWon = s.status === 'won';
+              const moneyStat = isWon
+                ? { label: 'Payout', value: s.payout ?? s.potentialReturn, muted: false }
+                : { label: 'Potential return', value: s.potentialReturn, muted: !isPending };
+              return (
+                <li key={s.id}>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setViewingSlip(s)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setViewingSlip(s);
+                      }
+                    }}
+                    className="cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-primary-light/60 hover:shadow-glass focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:border-slate-800 dark:bg-slate-900/50"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-xs font-medium text-slate-400">{formatDate(s.placedAt)}</p>
+                      <div className="flex items-center gap-2">
+                        {isPending ? (
+                          <Chip tone="warning">Pending</Chip>
+                        ) : isWon ? (
+                          <Chip tone="secondary">Won</Chip>
+                        ) : (
+                          <Chip tone="danger">Lost</Chip>
+                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeSlip(s.id);
+                          }}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          className="rounded-lg p-1.5 text-slate-400 transition hover:bg-danger/10 hover:text-danger"
+                          aria-label="Remove bet"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <ul className="mt-3 space-y-2">
+                      {s.selections.map((sel) => {
+                        const m = matches.find((x) => x.id === sel.matchId);
+                        return (
+                          <li key={sel.matchId} className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-semibold text-ink dark:text-white">
+                                {sel.team}
+                              </p>
+                              <p className="truncate text-xs text-slate-400">
+                                {m
+                                  ? `${m.homeTeam} vs ${m.awayTeam} · ${marketLabel(sel.market)}`
+                                  : 'Fixture no longer available'}
+                              </p>
+                            </div>
+                            <span className="shrink-0 text-sm font-bold text-primary-light">
+                              {sel.odds.toFixed(2)}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+
+                    <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
+                      <div>
+                        <dt className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                          Stake
+                        </dt>
+                        <dd className="mt-0.5 text-sm font-bold text-ink dark:text-white">
+                          {formatGHS(s.stake)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                          Odds
+                        </dt>
+                        <dd className="mt-0.5 text-sm font-bold text-ink dark:text-white">
+                          {s.combinedOdds.toFixed(2)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                          {moneyStat.label}
+                        </dt>
+                        <dd
+                          className={`mt-0.5 text-sm font-bold ${moneyStat.muted ? 'text-slate-400 line-through' : 'text-secondary'}`}
+                        >
+                          {formatGHS(moneyStat.value)}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </GlassCard>

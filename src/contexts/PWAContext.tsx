@@ -175,6 +175,43 @@ export function PWAProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+    const CHECK_INTERVAL_MS = 30 * 60 * 1000;
+    const INITIAL_CHECK_DELAY_MS = 3000;
+    let cancelled = false;
+    let intervalId = 0;
+    let initialTimeoutId = 0;
+
+    const checkForUpdate = async () => {
+      if (cancelled) return;
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) await registration.update();
+      } catch {
+        // update checks are best-effort; ignore failures
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (!document.hidden) void checkForUpdate();
+    };
+    const onOnline = () => void checkForUpdate();
+
+    initialTimeoutId = window.setTimeout(() => void checkForUpdate(), INITIAL_CHECK_DELAY_MS);
+    intervalId = window.setInterval(() => void checkForUpdate(), CHECK_INTERVAL_MS);
+    window.addEventListener('online', onOnline);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(initialTimeoutId);
+      window.clearInterval(intervalId);
+      window.removeEventListener('online', onOnline);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!('caches' in window)) return;
     let cancelled = false;
     const refresh = () => {

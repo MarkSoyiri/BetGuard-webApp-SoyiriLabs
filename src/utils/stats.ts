@@ -164,6 +164,18 @@ export function checkBetAgainstLimits(
     };
   }
 
+  if (limits.maxBetsPerDay > 0) {
+    const todayCount = userBets.filter((b) => b.date === today).length;
+    if (todayCount >= limits.maxBetsPerDay) {
+      return {
+        ok: false,
+        kind: 'maxBets',
+        message: `You've reached your daily maximum of ${limits.maxBetsPerDay} bets — try again tomorrow.`,
+        remaining: 0,
+      };
+    }
+  }
+
   return { ok: true, message: '' };
 }
 

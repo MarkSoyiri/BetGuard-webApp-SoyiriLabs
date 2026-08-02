@@ -158,8 +158,15 @@ export function SportsbookProvider({ children }: { children: ReactNode }) {
 
   const simulateResults = useCallback((): SportsbookBet[] => {
     const seed = todayISO();
+    const pendingMatchIds = new Set(
+      slips
+        .filter((s) => s.status === 'pending')
+        .flatMap((s) => s.selections.map((sel) => sel.matchId)),
+    );
     const upcoming = matches.filter((m) => m.status === 'upcoming');
-    const toFinish = upcoming.slice(0, Math.min(6, upcoming.length));
+    const betOn = upcoming.filter((m) => pendingMatchIds.has(m.id));
+    const fill = upcoming.filter((m) => !pendingMatchIds.has(m.id)).slice(0, 6);
+    const toFinish = [...betOn, ...fill];
     if (toFinish.length === 0) return [];
 
     const finishedIds = new Set(toFinish.map((m) => m.id));

@@ -108,6 +108,14 @@ input[type="number"]::-webkit-inner-spin-button {
   margin: 0;
 }
 
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 .recharts-default-tooltip {
   border-radius: 12px !important;
 }

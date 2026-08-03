@@ -89,7 +89,7 @@ export function Dashboard() {
         </div>
         <Link
           to="/betting-log"
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary-light px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/20 transition hover:shadow-primary/30"
+          className="ml-auto inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-secondary to-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-secondary/20 transition hover:shadow-secondary/30"
         >
           <Plus className="size-4" aria-hidden="true" /> Log a bet
         </Link>
@@ -113,30 +113,18 @@ export function Dashboard() {
       )}
 
       {isPending && (
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
+        <motion.button
+          onClick={() => setOpen(true)}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="mt-6 flex flex-col gap-4 rounded-3xl bg-gradient-to-br from-primary via-primary-light to-secondary p-6 text-white shadow-lg shadow-primary/25 sm:flex-row sm:items-center"
+          className="mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary to-primary-light px-4 py-2 text-sm font-semibold text-white shadow-md shadow-primary/25 transition hover:shadow-primary/40 hover:brightness-110"
         >
-          <div className="flex items-center gap-4">
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
-              <Rocket className="size-6" aria-hidden="true" />
-            </div>
-            <div>
-              <h2 className="font-display text-lg font-bold">Set up your account in 2 minutes</h2>
-              <p className="text-sm text-white/80">
-                Add funds to your wallet, set a budget and take your risk assessment.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setOpen(true)}
-            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-primary shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl sm:ml-auto"
-          >
-            <Ticket className="size-4" aria-hidden="true" /> Start tour
-          </button>
-        </motion.div>
+          <Rocket className="size-4" aria-hidden="true" /> Start tour
+          <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold leading-none">
+            2 min
+          </span>
+        </motion.button>
       )}
 
       <motion.div

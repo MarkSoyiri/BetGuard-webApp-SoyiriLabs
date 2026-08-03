@@ -52,7 +52,7 @@ export function Modal({ open, onClose, title, subtitle, children, size = 'md' }:
             exit={{ opacity: 0, y: 40, scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 320, damping: 30 }}
             onClick={(e) => e.stopPropagation()}
-            className={`glass-strong relative w-full min-w-0 ${SIZES[size]} max-h-[92vh] overflow-y-auto rounded-2xl sm:rounded-3xl`}
+            className={`glass-strong relative w-full min-w-0 ${SIZES[size]} max-h-[92dvh] overflow-y-auto overscroll-contain rounded-2xl sm:rounded-3xl`}
           >
             <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-200/60 bg-white/60 px-6 py-4 backdrop-blur-xl dark:border-slate-700/60 dark:bg-slate-900/60">
               <div>

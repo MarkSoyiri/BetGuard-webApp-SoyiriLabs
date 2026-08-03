@@ -40,7 +40,7 @@ export function Modal({ open, onClose, title, subtitle, children, size = 'md' }:
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[90] flex items-end justify-center bg-ink/50 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-ink/50 p-4 backdrop-blur-sm sm:p-6"
           onClick={onClose}
           role="dialog"
           aria-modal="true"
@@ -52,7 +52,7 @@ export function Modal({ open, onClose, title, subtitle, children, size = 'md' }:
             exit={{ opacity: 0, y: 40, scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 320, damping: 30 }}
             onClick={(e) => e.stopPropagation()}
-            className={`glass-strong relative w-full ${SIZES[size]} max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl`}
+            className={`glass-strong relative w-full min-w-0 ${SIZES[size]} max-h-[92vh] overflow-y-auto rounded-2xl sm:rounded-3xl`}
           >
             <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-200/60 bg-white/60 px-6 py-4 backdrop-blur-xl dark:border-slate-700/60 dark:bg-slate-900/60">
               <div>

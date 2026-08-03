@@ -6,6 +6,13 @@ export function usePersistedState<T>(
   initial: T,
 ): [T, Dispatch<SetStateAction<T>>] {
   const [state, setState] = useState<T>(() => readStorage(key, initial));
+  const [prevKey, setPrevKey] = useState(key);
+
+  if (prevKey !== key) {
+    setPrevKey(key);
+    setState(() => readStorage(key, initial));
+  }
+
   useEffect(() => {
     writeStorage(key, state);
   }, [key, state]);

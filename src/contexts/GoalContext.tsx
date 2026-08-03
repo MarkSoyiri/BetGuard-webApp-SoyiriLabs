@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, type ReactNode } from 'react';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { sampleGoals } from '@/data/sample';
+import { useUser } from './UserContext';
 import type { SavingsGoal } from '@/types';
 import { uid } from '@/utils/format';
 
@@ -16,7 +17,11 @@ interface GoalContextValue {
 const GoalContext = createContext<GoalContextValue | undefined>(undefined);
 
 export function GoalProvider({ children }: { children: ReactNode }) {
-  const [goals, setGoals] = usePersistedState<SavingsGoal[]>('goals', sampleGoals());
+  const { scopeKey, isDemoAccount } = useUser();
+  const [goals, setGoals] = usePersistedState<SavingsGoal[]>(
+    `${scopeKey}:goals`,
+    isDemoAccount ? sampleGoals() : [],
+  );
 
   const addGoal = useCallback(
     (goal: Omit<SavingsGoal, 'id' | 'createdAt'>) => {
@@ -54,8 +59,8 @@ export function GoalProvider({ children }: { children: ReactNode }) {
   );
 
   const resetGoals = useCallback(() => {
-    setGoals(sampleGoals());
-  }, [setGoals]);
+    setGoals(isDemoAccount ? sampleGoals() : []);
+  }, [setGoals, isDemoAccount]);
 
   return (
     <GoalContext.Provider value={{ goals, addGoal, contribute, updateGoal, deleteGoal, resetGoals }}>

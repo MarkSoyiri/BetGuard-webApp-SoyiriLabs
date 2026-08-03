@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import { ThemeProvider } from './ThemeContext';
 import { UserProvider } from './UserContext';
+import { WalletProvider } from './WalletContext';
+import { OnboardingProvider } from './OnboardingContext';
 import { BetProvider } from './BetContext';
 import { SportsbookProvider } from './SportsbookContext';
 import { BudgetProvider } from './BudgetContext';
@@ -21,28 +23,32 @@ export function AppProviders({ children }: { children: ReactNode }) {
       <ThemeProvider>
         <ToastProvider>
           <UserProvider>
-            <BudgetProvider>
-              <BetProvider>
-                <SportsbookProvider>
-                  <LimitsProvider>
-                    <GoalProvider>
-                      <AchievementProvider>
-                        <NotificationProvider>
-                          <GreenBetProvider>
-                            <ChallengeProvider>
-                              <CommunityProvider>
-                                {children}
-                                <PWAChrome />
-                              </CommunityProvider>
-                            </ChallengeProvider>
-                          </GreenBetProvider>
-                        </NotificationProvider>
-                      </AchievementProvider>
-                    </GoalProvider>
-                  </LimitsProvider>
-                </SportsbookProvider>
-              </BetProvider>
-            </BudgetProvider>
+            <WalletProvider>
+              <OnboardingProvider>
+                <BudgetProvider>
+                  <BetProvider>
+                    <SportsbookProvider>
+                      <LimitsProvider>
+                        <GoalProvider>
+                          <AchievementProvider>
+                            <NotificationProvider>
+                              <GreenBetProvider>
+                                <ChallengeProvider>
+                                  <CommunityProvider>
+                                    {children}
+                                    <PWAChrome />
+                                  </CommunityProvider>
+                                </ChallengeProvider>
+                              </GreenBetProvider>
+                            </NotificationProvider>
+                          </AchievementProvider>
+                        </GoalProvider>
+                      </LimitsProvider>
+                    </SportsbookProvider>
+                  </BetProvider>
+                </BudgetProvider>
+              </OnboardingProvider>
+            </WalletProvider>
           </UserProvider>
         </ToastProvider>
       </ThemeProvider>

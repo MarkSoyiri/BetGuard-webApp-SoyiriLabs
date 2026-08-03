@@ -66,3 +66,45 @@ export function importAllStorage(data: Record<string, unknown>): string[] {
   });
   return imported;
 }
+
+const LEGACY_USER_KEYS = [
+  'bets',
+  'budget',
+  'limits',
+  'goals',
+  'achievements',
+  'notifications',
+  'green-contributions',
+  'green-projects',
+  'green-points',
+  'green-challenges-completed',
+  'green-enabled',
+  'challenge-awards',
+  'challenge-articles',
+  'challenge-quiz-best',
+  'challenge-savings',
+  'challenge-interventions',
+  'challenge-healthy',
+  'challenge-green-high',
+  'challenge-green-best',
+  'challenge-cooldowns',
+  'challenge-coach',
+  'sportsbook-slips',
+  'chat',
+];
+
+export function migrateLegacyDemoData(): void {
+  try {
+    if (localStorage.getItem(PREFIX + 'demo:bets') != null) return;
+    let migrated = 0;
+    LEGACY_USER_KEYS.forEach((key) => {
+      const raw = localStorage.getItem(PREFIX + key);
+      if (raw == null) return;
+      localStorage.setItem(PREFIX + 'demo:' + key, raw);
+      migrated += 1;
+    });
+    if (migrated > 0) localStorage.setItem(PREFIX + 'migrated-v1', String(migrated));
+  } catch {
+    // storage may be unavailable — fail silently
+  }
+}

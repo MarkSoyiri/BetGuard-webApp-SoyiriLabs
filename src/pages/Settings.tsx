@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import {
   Settings as SettingsIcon,
@@ -20,22 +20,48 @@ import {
   HardDrive,
   RefreshCw,
   Database,
+  Wallet as WalletIcon,
+  Plus,
+  ArrowDownLeft,
+  ArrowUpRight,
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageTransition';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { DepositModal } from '@/components/wallet/DepositModal';
 import { InstallButton } from '@/components/pwa/InstallButton';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useUser } from '@/contexts/UserContext';
 import { useBudget } from '@/contexts/BudgetContext';
 import { useLimits } from '@/contexts/LimitsContext';
 import { useGreenBet } from '@/contexts/GreenBetContext';
+import { useWallet } from '@/contexts/WalletContext';
 import { useToast } from '@/contexts/ToastContext';
 import { usePWA } from '@/contexts/PWAContext';
 import { clearAllStorage, exportAllStorage, importAllStorage } from '@/utils/storage';
 import { formatDate, formatGHS } from '@/utils/format';
+import type { WalletTransactionType } from '@/types';
+
+const WALLET_TX_META: Record<WalletTransactionType, { icon: ReactNode; cls: string }> = {
+  deposit: {
+    icon: <Plus className="size-4" aria-hidden="true" />,
+    cls: 'bg-secondary/10 text-secondary',
+  },
+  win: {
+    icon: <ArrowUpRight className="size-4" aria-hidden="true" />,
+    cls: 'bg-secondary/10 text-secondary',
+  },
+  bet: {
+    icon: <ArrowDownLeft className="size-4" aria-hidden="true" />,
+    cls: 'bg-danger/10 text-danger',
+  },
+  refund: {
+    icon: <RotateCcw className="size-4" aria-hidden="true" />,
+    cls: 'bg-primary/10 text-primary-light',
+  },
+};
 
 export function Settings() {
   const { theme, toggleTheme } = useTheme();
@@ -43,6 +69,7 @@ export function Settings() {
   const { monthlyBudget, setMonthlyBudget } = useBudget();
   const { limits, setLimits, startCooldown, cancelCooldown, isCooldownActive, cooldownEndsAt } = useLimits();
   const { enabled: greenEnabled, toggleEnabled, greenScore, scoreBand, totalContributed, resetGreenData } = useGreenBet();
+  const { balance, transactions, resetWallet } = useWallet();
   const { toast } = useToast();
   const {
     isInstalled,
@@ -69,6 +96,7 @@ export function Settings() {
   const [limitMaxBets, setLimitMaxBets] = useState(String(limits.maxBetsPerDay));
   const [limitEnabled, setLimitEnabled] = useState(limits.enabled);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [walletOpen, setWalletOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -287,6 +315,75 @@ export function Settings() {
             </div>
             <Button type="submit" icon={<Save className="size-4" aria-hidden="true" />}>Save changes</Button>
           </form>
+        </GlassCard>
+
+        <GlassCard className="p-6">
+          <h3 className="mb-4 flex items-center gap-2 font-display text-base font-bold text-ink dark:text-white">
+            <WalletIcon className="size-5 text-primary-light" aria-hidden="true" /> Demo wallet
+          </h3>
+
+          <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-primary/[0.06] to-secondary/[0.06] p-4 dark:from-primary-light/10 dark:to-secondary/10">
+            <div className="flex items-center gap-3">
+              <div className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-secondary text-white shadow-lg shadow-primary/25">
+                <WalletIcon className="size-5" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Wallet balance</p>
+                <p className="font-display text-2xl font-bold text-ink dark:text-white">{formatGHS(balance)}</p>
+                <p className="text-[11px] text-slate-400">Simulated funds · stored on this device</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => setWalletOpen(true)} icon={<Plus className="size-4" aria-hidden="true" />}>
+                Add money
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  resetWallet();
+                  toast('Demo wallet reset.', 'info');
+                }}
+                icon={<RotateCcw className="size-4" aria-hidden="true" />}
+              >
+                Reset wallet
+              </Button>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-400">
+              Recent transactions
+            </p>
+            {transactions.length === 0 ? (
+              <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
+                No transactions yet — add money to your wallet to get started.
+              </p>
+            ) : (
+              <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                {transactions.slice(0, 6).map((t) => {
+                  const meta = WALLET_TX_META[t.type];
+                  const positive = t.type !== 'bet';
+                  return (
+                    <li key={t.id} className="flex items-center gap-3 py-2.5">
+                      <div className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${meta.cls}`}>
+                        {meta.icon}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-ink dark:text-white">{t.description}</p>
+                        <p className="text-xs text-slate-400">{formatDate(t.date)}</p>
+                      </div>
+                      <span className={`text-sm font-bold ${positive ? 'text-secondary' : 'text-danger'}`}>
+                        {positive ? '+' : '-'}
+                        {formatGHS(t.amount)}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          <DepositModal open={walletOpen} onClose={() => setWalletOpen(false)} />
         </GlassCard>
 
         <GlassCard className="p-6">

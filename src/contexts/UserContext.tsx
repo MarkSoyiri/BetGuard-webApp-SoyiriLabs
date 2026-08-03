@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, type ReactNode } from 'react';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import type { UserProfile } from '@/types';
 
@@ -6,6 +6,8 @@ interface UserContextValue {
   profile: UserProfile | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isDemoAccount: boolean;
+  scopeKey: string;
   login: (email: string, password: string) => boolean;
   register: (profile: UserProfile) => void;
   logout: () => void;
@@ -24,7 +26,13 @@ const GUEST_PROFILE: UserProfile = {
   joinedAt: new Date().toISOString(),
   notificationsEnabled: true,
   isAdmin: true,
+  isDemoAccount: true,
 };
+
+function normalizeProfile(p: UserProfile): UserProfile {
+  if (p.isDemoAccount === undefined) return { ...p, isDemoAccount: true };
+  return p;
+}
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = usePersistedState<UserProfile | null>('user', null);
@@ -34,7 +42,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     (email: string, _password: string): boolean => {
       const demo = GUEST_PROFILE;
       setProfile((prev) => {
-        if (prev) return prev;
+        if (prev) return normalizeProfile(prev);
         return { ...demo, email, name: 'Alex Mensah' };
       });
       setAuthed(true);
@@ -45,7 +53,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const register = useCallback(
     (p: UserProfile) => {
-      setProfile(p);
+      setProfile({ ...p, isDemoAccount: false });
       setAuthed(true);
     },
     [setProfile, setAuthed],
@@ -64,10 +72,26 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const isAuthenticated = Boolean(profile && authed);
   const isAdmin = Boolean(profile?.isAdmin);
+  const isDemoAccount = Boolean(profile?.isDemoAccount);
+  const scopeKey = useMemo(() => {
+    if (!profile) return 'guest';
+    if (profile.isDemoAccount) return 'demo';
+    return (profile.email || 'user').trim().toLowerCase() || 'user';
+  }, [profile]);
 
   return (
     <UserContext.Provider
-      value={{ profile, isAuthenticated, isAdmin, login, register, logout, updateProfile }}
+      value={{
+        profile,
+        isAuthenticated,
+        isAdmin,
+        isDemoAccount,
+        scopeKey,
+        login,
+        register,
+        logout,
+        updateProfile,
+      }}
     >
       {children}
     </UserContext.Provider>

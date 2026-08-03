@@ -2,6 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { generateMatches } from '@/data/matches';
 import { useBets } from './BetContext';
+import { useUser } from './UserContext';
+import { useWallet } from './WalletContext';
 import type { BetOutcome, Match, SlipSelection, SportsbookBet } from '@/types';
 import { todayISO, uid } from '@/utils/format';
 
@@ -67,11 +69,13 @@ function randomScore(m: Match): [number, number] {
 
 export function SportsbookProvider({ children }: { children: ReactNode }) {
   const { addBet, updateBet } = useBets();
+  const { scopeKey } = useUser();
+  const { spend, credit, refund } = useWallet();
   const [store, setStore] = usePersistedState<MatchesStore>('sportsbook-matches', {
     seed: '',
     matches: generateMatches(),
   });
-  const [slips, setSlips] = usePersistedState<SportsbookBet[]>('sportsbook-slips', []);
+  const [slips, setSlips] = usePersistedState<SportsbookBet[]>(`${scopeKey}:sportsbook-slips`, []);
   const [bucket, setBucket] = useState(() => cycleBucket());
   const lastSettled = useRef(bucket);
 
@@ -97,13 +101,16 @@ export function SportsbookProvider({ children }: { children: ReactNode }) {
       (s) => s.status === 'pending' && !s.selections.every((sel) => freshIds.has(sel.matchId)),
     );
     if (orphaned.length === 0) return;
-    orphaned.forEach((s) => updateBet(s.betId, { outcome: 'lost' as BetOutcome, status: 'settled' }));
+    orphaned.forEach((s) => {
+      updateBet(s.betId, { outcome: 'lost' as BetOutcome, status: 'settled' });
+      refund(s.stake, 'Void slip — fixture no longer available');
+    });
     setSlips((prev) =>
       prev.map((s) =>
         orphaned.some((o) => o.id === s.id) ? { ...s, status: 'lost' as const, payout: 0 } : s,
       ),
     );
-  }, [bucket, matches, slips, setSlips, updateBet]);
+  }, [bucket, matches, slips, setSlips, updateBet, refund]);
 
   const nextRefreshAt = new Date(cycleStart() + CYCLE_MS).toISOString();
 
@@ -119,6 +126,7 @@ export function SportsbookProvider({ children }: { children: ReactNode }) {
           return m ? `${m.homeTeam} vs ${m.awayTeam} · ${s.team} @ ${s.odds}` : s.team;
         })
         .join(' | ');
+      if (!spend(stake, `Sportsbook bet · ${notes.slice(0, 60)}`)) return null;
       const rec = addBet({
         date: todayISO(),
         platform: 'BetGuard Sportsbook',
@@ -142,7 +150,7 @@ export function SportsbookProvider({ children }: { children: ReactNode }) {
       setSlips((prev) => [slip, ...prev]);
       return slip;
     },
-        [addBet, setSlips, matches],
+        [addBet, setSlips, matches, spend],
   );
 
   const removeSlip = useCallback(
@@ -194,13 +202,16 @@ export function SportsbookProvider({ children }: { children: ReactNode }) {
     if (newlySettled.length > 0) {
       newlySettled.forEach((s) => {
         updateBet(s.betId, { outcome: s.status as BetOutcome, status: 'settled' });
+        if (s.status === 'won') {
+          credit(s.payout ?? s.potentialReturn, 'Sportsbook bet won');
+        }
       });
     }
 
     setStore({ seed, matches: nextMatches });
     setSlips(nextSlips);
     return newlySettled;
-  }, [matches, slips, setStore, setSlips, updateBet]);
+  }, [matches, slips, setStore, setSlips, updateBet, credit]);
 
   return (
     <SportsbookContext.Provider

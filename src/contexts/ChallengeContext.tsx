@@ -81,7 +81,7 @@ export function ChallengeProvider({ children }: { children: ReactNode }) {
   const { monthlyBudget } = useBudget();
   const { limits, isCooldownActive, cooldownEndsAt } = useLimits();
   const { goals } = useGoals();
-  const { profile } = useUser();
+  const { profile, scopeKey } = useUser();
   const { unlock, addAchievement } = useAchievements();
   const { addNotification } = useNotifications();
   const {
@@ -93,16 +93,16 @@ export function ChallengeProvider({ children }: { children: ReactNode }) {
   } = useGreenBet();
   const { toast } = useToast();
 
-  const [awarded, setAwarded] = usePersistedState<string[]>('challenge-awards', []);
-  const [readArticles, setReadArticles] = usePersistedState<string[]>('challenge-articles', []);
-  const [quizBestPct, setQuizBestPct] = usePersistedState<number>('challenge-quiz-best', 0);
-  const [savings, setSavings] = usePersistedState<SavingsState>('challenge-savings', { count: 0, weeks: [] });
-  const [interventions, setInterventions] = usePersistedState<string[]>('challenge-interventions', []);
-  const [healthy, setHealthy] = usePersistedState<HealthyState>('challenge-healthy', { days: 0, last: null });
-  const [greenHigh, setGreenHigh] = usePersistedState<HealthyState>('challenge-green-high', { days: 0, last: null });
-  const [greenBestInBudget, setGreenBestInBudget] = usePersistedState<number>('challenge-green-best', 0);
-  const [cooldowns, setCooldowns] = usePersistedState<CooldownState>('challenge-cooldowns', { count: 0, lastCounted: null });
-  const [coachMessages, setCoachMessages] = usePersistedState<number>('challenge-coach', 0);
+  const [awarded, setAwarded] = usePersistedState<string[]>(`${scopeKey}:challenge-awards`, []);
+  const [readArticles, setReadArticles] = usePersistedState<string[]>(`${scopeKey}:challenge-articles`, []);
+  const [quizBestPct, setQuizBestPct] = usePersistedState<number>(`${scopeKey}:challenge-quiz-best`, 0);
+  const [savings, setSavings] = usePersistedState<SavingsState>(`${scopeKey}:challenge-savings`, { count: 0, weeks: [] });
+  const [interventions, setInterventions] = usePersistedState<string[]>(`${scopeKey}:challenge-interventions`, []);
+  const [healthy, setHealthy] = usePersistedState<HealthyState>(`${scopeKey}:challenge-healthy`, { days: 0, last: null });
+  const [greenHigh, setGreenHigh] = usePersistedState<HealthyState>(`${scopeKey}:challenge-green-high`, { days: 0, last: null });
+  const [greenBestInBudget, setGreenBestInBudget] = usePersistedState<number>(`${scopeKey}:challenge-green-best`, 0);
+  const [cooldowns, setCooldowns] = usePersistedState<CooldownState>(`${scopeKey}:challenge-cooldowns`, { count: 0, lastCounted: null });
+  const [coachMessages, setCoachMessages] = usePersistedState<number>(`${scopeKey}:challenge-coach`, 0);
   const [recentCompletions, setRecentCompletions] = useState<string[]>([]);
   const [now, setNow] = useState(() => Date.now());
 

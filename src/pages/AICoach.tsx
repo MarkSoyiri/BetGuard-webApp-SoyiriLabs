@@ -30,13 +30,23 @@ interface CoachContext {
   challengeTip: string;
   completedChallenges: number;
   totalChallenges: number;
+  isNewAccount: boolean;
 }
 
 function buildReply(input: string, ctx: CoachContext): string {
   const q = input.toLowerCase();
-  const { monthSpent, budget, monthlyAvg, savingsTotal, winRate, name, greenScore, greenEnabled, trees, greenContributed, challengeTip, completedChallenges, totalChallenges } = ctx;
+  const { monthSpent, budget, monthlyAvg, savingsTotal, winRate, name, greenScore, greenEnabled, trees, greenContributed, challengeTip, completedChallenges, totalChallenges, isNewAccount } = ctx;
   const remaining = Math.max(0, budget - monthSpent);
   const status = budgetStatus(monthSpent, budget);
+
+  if (isNewAccount) {
+    const onboardingReplies = [
+      `Welcome to your fresh account, ${name.split(' ')[0]}! Since everything starts empty here, the fastest way to feel at home is the quick-start tour on your dashboard — it sets up your demo wallet, monthly budget and risk assessment in about two minutes.`,
+      `You're starting from zero — the best place to build healthy habits. Top up your demo wallet from the wallet button at the top, then set a monthly budget you're comfortable with. Your dashboard tour walks you through both.`,
+      `No bets, no budget yet — let's fix that. Open the quick-start tour on your dashboard to add demo funds, pick a budget and take the risk assessment. Once that's done, come back and ask me anything about your numbers.`,
+    ];
+    return onboardingReplies[Math.floor(Math.random() * onboardingReplies.length)];
+  }
 
   if (q.includes('challenge') || q.includes('focus') || q.includes('progress') || q.includes('next')) {
     return `Your challenges are tracked automatically from your real activity — you have completed ${completedChallenges} of ${totalChallenges}. ${challengeTip}`;
@@ -103,7 +113,7 @@ export function AICoach() {
   const { bets } = useBets();
   const { monthlyBudget } = useBudget();
   const { goals } = useGoals();
-  const { profile } = useUser();
+  const { profile, isDemoAccount, scopeKey } = useUser();
   const { greenScore, enabled: greenEnabled, trees, totalContributed: greenContributed } = useGreenBet();
   const { challenges, completedCount, totalCount, estimateDays, recordCoachMessage } = useChallenges();
 
@@ -118,6 +128,10 @@ export function AICoach() {
     return recent.reduce((s, b) => s + b.amount, 0) / 2;
   }, [bets]);
   const savingsTotal = useMemo(() => goals.reduce((s, g) => s + g.current, 0), [goals]);
+  const isNewAccount = useMemo(
+    () => !isDemoAccount && bets.length === 0 && monthlyBudget === 0 && goals.length === 0,
+    [isDemoAccount, bets, monthlyBudget, goals],
+  );
 
   const challengeTip = useMemo(() => {
     const active = challenges
@@ -131,11 +145,13 @@ export function AICoach() {
     return `Your closest goal is "${top.c.title}" at ${top.pct}% (${estimateDays(top.c)}).${near}`;
   }, [challenges, estimateDays]);
 
-  const [messages, setMessages] = usePersistedState<ChatMessage[]>('chat', [
+  const [messages, setMessages] = usePersistedState<ChatMessage[]>(`${scopeKey}:chat`, [
     {
       id: uid('msg'),
       role: 'coach',
-      text: `Hi ${profile?.name?.split(' ')[0] ?? 'there'}! I'm your BetGuard coach. Ask me anything about your spending, budget, or habits — I'm here to keep you on track.`,
+      text: isNewAccount
+        ? `Hi ${profile?.name?.split(' ')[0] ?? 'there'}! I'm your BetGuard coach. Your account is fresh, so let's set you up right: top up your demo wallet and set a monthly budget from the quick-start tour on your dashboard — then come back and ask me anything.`
+        : `Hi ${profile?.name?.split(' ')[0] ?? 'there'}! I'm your BetGuard coach. Ask me anything about your spending, budget, or habits — I'm here to keep you on track.`,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -169,6 +185,7 @@ export function AICoach() {
       challengeTip,
       completedChallenges: completedCount,
       totalChallenges: totalCount,
+      isNewAccount,
     };
     setTimeout(() => {
       const reply = buildReply(clean, ctx);

@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from 'react';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { sampleGreenProjects } from '@/data/sample';
+import { useUser } from './UserContext';
 import { useBets } from './BetContext';
 import { useBudget } from './BudgetContext';
 import { useGoals } from './GoalContext';
@@ -70,6 +71,7 @@ interface GreenBetContextValue {
 const GreenBetContext = createContext<GreenBetContextValue | undefined>(undefined);
 
 export function GreenBetProvider({ children }: { children: ReactNode }) {
+  const { scopeKey } = useUser();
   const { bets } = useBets();
   const { monthlyBudget } = useBudget();
   const { goals } = useGoals();
@@ -77,11 +79,11 @@ export function GreenBetProvider({ children }: { children: ReactNode }) {
   const { achievements, unlock } = useAchievements();
   const { addNotification } = useNotifications();
 
-  const [contributions, setContributions] = usePersistedState<GreenContribution[]>('green-contributions', []);
-  const [projects, setProjects] = usePersistedState<GreenProject[]>('green-projects', sampleGreenProjects());
-  const [greenPoints, setGreenPoints] = usePersistedState<number>('green-points', 0);
-  const [completedChallenges, setCompletedChallenges] = usePersistedState<number>('green-challenges-completed', 0);
-  const [enabled, setEnabled] = usePersistedState<boolean>('green-enabled', true);
+  const [contributions, setContributions] = usePersistedState<GreenContribution[]>(`${scopeKey}:green-contributions`, []);
+  const [projects, setProjects] = usePersistedState<GreenProject[]>(`${scopeKey}:green-projects`, sampleGreenProjects());
+  const [greenPoints, setGreenPoints] = usePersistedState<number>(`${scopeKey}:green-points`, 0);
+  const [completedChallenges, setCompletedChallenges] = usePersistedState<number>(`${scopeKey}:green-challenges-completed`, 0);
+  const [enabled, setEnabled] = usePersistedState<boolean>(`${scopeKey}:green-enabled`, true);
 
   const toggleEnabled = useCallback(() => {
     setEnabled((prev) => !prev);

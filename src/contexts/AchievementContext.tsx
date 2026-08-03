@@ -1,6 +1,7 @@
-import { createContext, useCallback, useContext, useEffect, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, type ReactNode } from 'react';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { sampleAchievements } from '@/data/sample';
+import { useUser } from './UserContext';
 import type { Achievement } from '@/types';
 import { uid } from '@/utils/format';
 
@@ -15,18 +16,11 @@ interface AchievementContextValue {
 const AchievementContext = createContext<AchievementContextValue | undefined>(undefined);
 
 export function AchievementProvider({ children }: { children: ReactNode }) {
+  const { scopeKey, isDemoAccount } = useUser();
   const [achievements, setAchievements] = usePersistedState<Achievement[]>(
-    'achievements',
-    sampleAchievements(),
+    `${scopeKey}:achievements`,
+    isDemoAccount ? sampleAchievements() : [],
   );
-
-  useEffect(() => {
-    setAchievements((prev) => {
-      const known = new Set(prev.map((a) => a.id));
-      const missing = sampleAchievements().filter((a) => !known.has(a.id));
-      return missing.length === 0 ? prev : [...prev, ...missing];
-    });
-  }, [setAchievements]);
 
   const unlock = useCallback(
     (id: string): boolean => {
@@ -67,8 +61,8 @@ export function AchievementProvider({ children }: { children: ReactNode }) {
   );
 
   const resetAchievements = useCallback(() => {
-    setAchievements(sampleAchievements());
-  }, [setAchievements]);
+    setAchievements(isDemoAccount ? sampleAchievements() : []);
+  }, [setAchievements, isDemoAccount]);
 
   const unlockedCount = achievements.filter((a) => a.unlocked).length;
 

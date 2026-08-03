@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from 'react';
 import { usePersistedState } from '@/hooks/usePersistedState';
+import { useUser } from './UserContext';
 import type { BettingLimits } from '@/types';
 
 interface LimitsContextValue {
@@ -25,7 +26,11 @@ const DEFAULT_LIMITS: BettingLimits = {
 };
 
 export function LimitsProvider({ children }: { children: ReactNode }) {
-  const [limits, setLimitsState] = usePersistedState<BettingLimits>('limits', DEFAULT_LIMITS);
+  const { scopeKey } = useUser();
+  const [limits, setLimitsState] = usePersistedState<BettingLimits>(
+    `${scopeKey}:limits`,
+    DEFAULT_LIMITS,
+  );
 
   const setLimits = useCallback(
     (patch: Partial<BettingLimits>) => {

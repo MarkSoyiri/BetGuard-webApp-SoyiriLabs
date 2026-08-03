@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, type ReactNode } from 'react';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { generateDemoBets } from '@/data/sample';
+import { useUser } from './UserContext';
 import type { BetRecord } from '@/types';
 import { uid } from '@/utils/format';
 
@@ -15,7 +16,11 @@ interface BetContextValue {
 const BetContext = createContext<BetContextValue | undefined>(undefined);
 
 export function BetProvider({ children }: { children: ReactNode }) {
-  const [bets, setBets] = usePersistedState<BetRecord[]>('bets', generateDemoBets());
+  const { scopeKey, isDemoAccount } = useUser();
+  const [bets, setBets] = usePersistedState<BetRecord[]>(
+    `${scopeKey}:bets`,
+    isDemoAccount ? generateDemoBets() : [],
+  );
 
   const addBet = useCallback(
     (bet: Omit<BetRecord, 'id'>): BetRecord => {
@@ -41,8 +46,8 @@ export function BetProvider({ children }: { children: ReactNode }) {
   );
 
   const resetBets = useCallback(() => {
-    setBets(generateDemoBets());
-  }, [setBets]);
+    setBets(isDemoAccount ? generateDemoBets() : []);
+  }, [setBets, isDemoAccount]);
 
   return (
     <BetContext.Provider value={{ bets, addBet, updateBet, deleteBet, resetBets }}>

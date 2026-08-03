@@ -1,11 +1,15 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, Bell, Sun, Moon, Search, Ticket } from 'lucide-react';
+import { Menu, Bell, Sun, Moon, Search, Ticket, Wallet } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { useUser } from '@/contexts/UserContext';
+import { useWallet } from '@/contexts/WalletContext';
+import { DepositModal } from '@/components/wallet/DepositModal';
 import { InstallButton } from '@/components/pwa/InstallButton';
 import { useActiveSection } from './nav';
 import { prefetchPage } from '@/utils/pagePrefetch';
+import { formatGHS } from '@/utils/format';
 
 interface NavbarProps {
   onOpenMobile: () => void;
@@ -15,6 +19,8 @@ export function Navbar({ onOpenMobile }: NavbarProps) {
   const { theme, toggleTheme } = useTheme();
   const { unreadCount } = useNotifications();
   const { profile } = useUser();
+  const { balance } = useWallet();
+  const [walletOpen, setWalletOpen] = useState(false);
   const location = useLocation();
   const active = useActiveSection(location.pathname);
 
@@ -62,6 +68,15 @@ export function Navbar({ onOpenMobile }: NavbarProps) {
           <Ticket className="size-5" />
         </Link>
 
+        <button
+          onClick={() => setWalletOpen(true)}
+          className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white/60 px-3 py-2 text-sm font-bold text-ink shadow-sm transition hover:border-primary-light/50 hover:shadow-md dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+          aria-label={`Wallet balance ${formatGHS(balance)}. Tap to add money`}
+        >
+          <Wallet className="size-4 text-primary-light" aria-hidden="true" />
+          <span>{formatGHS(balance)}</span>
+        </button>
+
         <InstallButton iconOnly />
 
         <Link
@@ -90,6 +105,7 @@ export function Navbar({ onOpenMobile }: NavbarProps) {
             .toUpperCase()}
         </Link>
       </div>
+      <DepositModal open={walletOpen} onClose={() => setWalletOpen(false)} />
     </header>
   );
 }

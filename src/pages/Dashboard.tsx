@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -14,6 +14,8 @@ import {
   Sprout,
   Trophy,
   Target,
+  Rocket,
+  Ticket,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -27,9 +29,12 @@ import {
 import { StatCard } from '@/components/ui/StatCard';
 import { RiskCard } from '@/components/ui/RiskCard';
 import { ChartCard } from '@/components/ui/ChartCard';
+import { DepositModal } from '@/components/wallet/DepositModal';
 import { useBets } from '@/contexts/BetContext';
 import { useBudget } from '@/contexts/BudgetContext';
 import { useUser } from '@/contexts/UserContext';
+import { useWallet } from '@/contexts/WalletContext';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useLimits } from '@/contexts/LimitsContext';
 import { useGreenBet } from '@/contexts/GreenBetContext';
 import { useChallenges } from '@/contexts/ChallengeContext';
@@ -41,14 +46,18 @@ export function Dashboard() {
   const { profile } = useUser();
   const { bets } = useBets();
   const { monthlyBudget } = useBudget();
+  const { balance } = useWallet();
+  const { isPending, setOpen } = useOnboarding();
   const { limits, isCooldownActive, cooldownEndsAt } = useLimits();
   const { enabled: greenEnabled, greenScore, scoreBand, trees, totalContributed, greenPoints } = useGreenBet();
   const { activeChallenges, healthBonus } = useChallenges();
+  const [depositOpen, setDepositOpen] = useState(false);
 
   const monthSpent = useMemo(() => monthlySpending(bets), [bets]);
   const health = useMemo(() => computeHealthScore(bets, monthlyBudget, limits), [bets, monthlyBudget, limits]);
   const remaining = Math.max(0, monthlyBudget - monthSpent);
   const status = budgetStatus(monthSpent, monthlyBudget);
+  const budgetNotSet = monthlyBudget === 0;
 
   const daily = useMemo(() => {
     return dateRange(30).map((d) => ({
@@ -103,20 +112,85 @@ export function Dashboard() {
         </motion.div>
       )}
 
+      {isPending && (
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="mt-6 flex flex-col gap-4 rounded-3xl bg-gradient-to-br from-primary via-primary-light to-secondary p-6 text-white shadow-lg shadow-primary/25 sm:flex-row sm:items-center"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
+              <Rocket className="size-6" aria-hidden="true" />
+            </div>
+            <div>
+              <h2 className="font-display text-lg font-bold">Set up your account in 2 minutes</h2>
+              <p className="text-sm text-white/80">
+                Add funds to your wallet, set a budget and take your risk assessment.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setOpen(true)}
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-primary shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl sm:ml-auto"
+          >
+            <Ticket className="size-4" aria-hidden="true" /> Start tour
+          </button>
+        </motion.div>
+      )}
+
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="mt-6 flex flex-col gap-4 rounded-3xl bg-gradient-to-br from-primary via-primary-light to-primary p-6 text-white shadow-lg shadow-primary/25 sm:flex-row sm:items-center"
+      >
+        <div className="flex items-center gap-4">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 backdrop-blur">
+            <Wallet className="size-6" aria-hidden="true" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-white/70">Wallet balance</p>
+            <p className="font-display text-3xl font-bold">{formatGHS(balance)}</p>
+            <p className="text-xs text-white/70">Demo wallet · funds are simulated and stored locally</p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+          <button
+            onClick={() => setDepositOpen(true)}
+            className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-primary shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl"
+          >
+            <Plus className="size-4" aria-hidden="true" /> Add money
+          </button>
+          <Link
+            to="/settings"
+            className="inline-flex items-center gap-1 rounded-xl px-3 py-2.5 text-sm font-semibold text-white/90 transition hover:bg-white/10"
+          >
+            History <ChevronRight className="size-3.5" aria-hidden="true" />
+          </Link>
+        </div>
+      </motion.div>
+
       <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-3">
         <StatCard
           icon={Wallet}
           label="Money spent"
           value={formatGHS(monthSpent)}
-          sub={`of GH₵ ${monthlyBudget.toLocaleString()} budget`}
+          sub={budgetNotSet ? 'No budget set yet' : `of GH₵ ${monthlyBudget.toLocaleString()} budget`}
           tone="primary"
           delay={0}
         />
         <StatCard
           icon={TrendingDown}
           label="Budget remaining"
-          value={formatGHS(remaining)}
-          sub={remaining === 0 ? 'Budget used up' : `${Math.round((remaining / Math.max(1, monthlyBudget)) * 100)}% left`}
+          value={budgetNotSet ? '—' : formatGHS(remaining)}
+          sub={
+            budgetNotSet
+              ? 'Set a budget to track yourself'
+              : remaining === 0
+                ? 'Budget used up'
+                : `${Math.round((remaining / Math.max(1, monthlyBudget)) * 100)}% left`
+          }
           tone={status === 'critical' ? 'danger' : 'secondary'}
           delay={0.06}
         />
@@ -175,38 +249,56 @@ export function Dashboard() {
               </Link>
             }
           >
-            <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-              {recent.map((bet, i) => (
-                <motion.li
-                  key={bet.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="flex items-center gap-4 py-3"
+            {recent.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 py-8 text-center">
+                <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary-light">
+                  <Ticket className="size-6" aria-hidden="true" />
+                </div>
+                <p className="text-sm font-semibold text-ink dark:text-white">No bets logged yet</p>
+                <p className="max-w-xs text-sm text-slate-500 dark:text-slate-400">
+                  Your activity will show up here. Place a bet on the Sportsbook or log one manually.
+                </p>
+                <Link
+                  to="/sportsbook"
+                  className="mt-1 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary-light px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary/20 transition hover:shadow-primary/30"
                 >
-                  <div
-                    className={`flex size-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold ${
-                      bet.status === 'pending'
-                        ? 'bg-warning/10 text-orange-600 dark:text-warning'
-                        : bet.outcome === 'won'
-                          ? 'bg-secondary/10 text-secondary-dark dark:text-secondary'
-                          : 'bg-danger/10 text-danger'
-                    }`}
+                  <Ticket className="size-4" aria-hidden="true" /> Go to Sportsbook
+                </Link>
+              </div>
+            ) : (
+              <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                {recent.map((bet, i) => (
+                  <motion.li
+                    key={bet.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="flex items-center gap-4 py-3"
                   >
-                    {bet.status === 'pending' ? <Clock className="size-4" aria-hidden="true" /> : bet.outcome === 'won' ? 'W' : 'L'}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-ink dark:text-white">
-                      {bet.sport} · {bet.platform}
-                    </p>
-                    <p className="text-xs text-slate-400">{formatDateShort(bet.date)}</p>
-                  </div>
-                  <span className={`text-sm font-bold ${bet.status === 'pending' ? 'text-warning' : bet.outcome === 'won' ? 'text-secondary' : 'text-danger'}`}>
-                    {bet.status === 'pending' ? formatGHS(bet.amount) : `${bet.outcome === 'won' ? '+' : '-'}${formatGHS(bet.amount)}`}
-                  </span>
-                </motion.li>
-              ))}
-            </ul>
+                    <div
+                      className={`flex size-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold ${
+                        bet.status === 'pending'
+                          ? 'bg-warning/10 text-orange-600 dark:text-warning'
+                          : bet.outcome === 'won'
+                            ? 'bg-secondary/10 text-secondary-dark dark:text-secondary'
+                            : 'bg-danger/10 text-danger'
+                      }`}
+                    >
+                      {bet.status === 'pending' ? <Clock className="size-4" aria-hidden="true" /> : bet.outcome === 'won' ? 'W' : 'L'}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-ink dark:text-white">
+                        {bet.sport} · {bet.platform}
+                      </p>
+                      <p className="text-xs text-slate-400">{formatDateShort(bet.date)}</p>
+                    </div>
+                    <span className={`text-sm font-bold ${bet.status === 'pending' ? 'text-warning' : bet.outcome === 'won' ? 'text-secondary' : 'text-danger'}`}>
+                      {bet.status === 'pending' ? formatGHS(bet.amount) : `${bet.outcome === 'won' ? '+' : '-'}${formatGHS(bet.amount)}`}
+                    </span>
+                  </motion.li>
+                ))}
+              </ul>
+            )}
           </ChartCard>
         </div>
 
@@ -258,7 +350,9 @@ export function Dashboard() {
           >
             {activeChallenges.length === 0 ? (
               <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
-                No active challenges — you've completed everything. Check back soon.
+                {isPending
+                  ? 'Challenges unlock as you bet — start exploring to earn your first badge.'
+                  : "No active challenges — you've completed everything. Check back soon."}
               </p>
             ) : (
               <div className="space-y-4">
@@ -290,6 +384,8 @@ export function Dashboard() {
           </ChartCard>
         </div>
       </div>
+
+      <DepositModal open={depositOpen} onClose={() => setDepositOpen(false)} />
     </div>
   );
 }

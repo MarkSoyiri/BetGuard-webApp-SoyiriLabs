@@ -24,6 +24,7 @@ import { Chip } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PostBetInsight } from '@/components/PostBetInsight';
+import { DepositModal } from '@/components/wallet/DepositModal';
 import { useSportsbook } from '@/contexts/SportsbookContext';
 import { useBets } from '@/contexts/BetContext';
 import { useBudget } from '@/contexts/BudgetContext';
@@ -32,6 +33,7 @@ import { useNotifications } from '@/contexts/NotificationContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useGreenBet } from '@/contexts/GreenBetContext';
 import { useChallenges } from '@/contexts/ChallengeContext';
+import { useWallet } from '@/contexts/WalletContext';
 import type { LimitCheck, Match, MatchSport, SlipMarket, SlipSelection, SportsbookBet } from '@/types';
 import { formatDate, formatGHS, todayISO } from '@/utils/format';
 import { checkBetAgainstLimits, monthlySpending, spentOnDate } from '@/utils/stats';
@@ -98,11 +100,13 @@ export function Sportsbook() {
   const { toast } = useToast();
   const { enabled: greenEnabled, recordContribution } = useGreenBet();
   const { recordIntervention } = useChallenges();
+  const { balance } = useWallet();
 
   const [tab, setTab] = useState<SportTab>('All');
   const [slip, setSlip] = useState<SlipSelection[]>([]);
   const [stake, setStake] = useState('');
   const [block, setBlock] = useState<LimitCheck | null>(null);
+  const [depositOpen, setDepositOpen] = useState(false);
   const [insight, setInsight] = useState<{ open: boolean; slips: SportsbookBet[] }>({
     open: false,
     slips: [],
@@ -145,7 +149,8 @@ export function Sportsbook() {
   const combinedOdds = round2(slip.reduce((p, s) => p * s.odds, 1));
   const stakeNum = Number(stake) || 0;
   const potential = stakeNum > 0 ? round2(stakeNum * combinedOdds) : 0;
-  const overBudget = stakeNum > 0 && monthSpent + stakeNum > monthlyBudget;
+  const overBudget = monthlyBudget > 0 && stakeNum > 0 && monthSpent + stakeNum > monthlyBudget;
+  const insufficientFunds = stakeNum > 0 && stakeNum > balance;
 
   const pendingCount = slips.filter((s) => s.status === 'pending').length;
   const totalStaked = slips.reduce((sum, s) => sum + s.stake, 0);
@@ -184,6 +189,11 @@ export function Sportsbook() {
     }
     if (isCooldownActive) {
       toast('You are on a betting break — placing is paused.', 'warning');
+      return;
+    }
+    if (stakeNum > balance) {
+      toast('Not enough funds in your demo wallet — top up to place this bet.', 'warning');
+      setDepositOpen(true);
       return;
     }
     const check = checkBetAgainstLimits(bets, limits, stakeNum, monthlyBudget);
@@ -418,6 +428,23 @@ export function Sportsbook() {
                   })}
                 </ul>
 
+                <div className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-primary/[0.04] p-3 dark:bg-primary-light/10">
+                  <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-300">
+                    <Wallet className="size-3.5 text-primary-light" aria-hidden="true" />
+                    Wallet balance
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-ink dark:text-white">{formatGHS(balance)}</span>
+                    <button
+                      type="button"
+                      onClick={() => setDepositOpen(true)}
+                      className="rounded-lg bg-gradient-to-r from-primary to-primary-light px-2.5 py-1 text-[10px] font-bold text-white shadow-sm shadow-primary/20 transition hover:shadow-primary/30"
+                    >
+                      Top up
+                    </button>
+                  </span>
+                </div>
+
                 <Input
                   label="Stake (GH₵)"
                   type="number"
@@ -451,6 +478,16 @@ export function Sportsbook() {
                     </span>
                   </div>
                 </div>
+
+                {insufficientFunds && (
+                  <div className="mt-3 flex items-start gap-2 rounded-xl bg-danger/10 p-3 text-xs leading-relaxed text-danger">
+                    <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                    <span>
+                      Not enough funds in your demo wallet to cover this stake. Add money to your
+                      wallet first.
+                    </span>
+                  </div>
+                )}
 
                 {overBudget && (
                   <div className="mt-3 flex items-start gap-2 rounded-xl bg-warning/10 p-3 text-xs leading-relaxed text-orange-700 dark:text-warning">
@@ -716,8 +753,7 @@ export function Sportsbook() {
         onClose={() => setViewingSlip(null)}
         title="Bet details"
         subtitle={viewingSlip ? formatDate(viewingSlip.placedAt) : undefined}
-      >
-        {viewingSlip && (
+      >        {viewingSlip && (
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/60">
               <div>
@@ -783,6 +819,8 @@ export function Sportsbook() {
           </div>
         )}
       </Modal>
+
+      <DepositModal open={depositOpen} onClose={() => setDepositOpen(false)} />
 
       <PostBetInsight
         open={insight.open}

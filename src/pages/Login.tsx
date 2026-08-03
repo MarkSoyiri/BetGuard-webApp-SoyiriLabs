@@ -126,7 +126,9 @@ export function Login() {
       </Button>
 
       <p className="mt-5 rounded-xl bg-primary/5 px-4 py-3 text-center text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-        Demo mode — any email and password will work. No real authentication is used.
+        <strong>Demo mode</strong> — any email and password will work. On your first visit you'll
+        explore the sample demo account; accounts you create stay separate with their own clean
+        data. Nothing is ever sent online.
       </p>
     </AuthShell>
   );

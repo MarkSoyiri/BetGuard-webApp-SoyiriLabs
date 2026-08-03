@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, type ReactNode } from 'react';
 import { usePersistedState } from '@/hooks/usePersistedState';
+import { useUser } from './UserContext';
 
 interface BudgetContextValue {
   monthlyBudget: number;
@@ -9,7 +10,11 @@ interface BudgetContextValue {
 const BudgetContext = createContext<BudgetContextValue | undefined>(undefined);
 
 export function BudgetProvider({ children }: { children: ReactNode }) {
-  const [monthlyBudget, setMonthlyBudgetState] = usePersistedState<number>('budget', 600);
+  const { scopeKey, isDemoAccount } = useUser();
+  const [monthlyBudget, setMonthlyBudgetState] = usePersistedState<number>(
+    `${scopeKey}:budget`,
+    isDemoAccount ? 600 : 0,
+  );
 
   const setMonthlyBudget = useCallback(
     (value: number) => {

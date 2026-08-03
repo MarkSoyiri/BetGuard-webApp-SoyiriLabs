@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from 'react';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { sampleNotifications } from '@/data/sample';
+import { useUser } from './UserContext';
 import type { AppNotification, NotificationType } from '@/types';
 import { uid } from '@/utils/format';
 
@@ -17,10 +18,25 @@ interface NotificationContextValue {
 
 const NotificationContext = createContext<NotificationContextValue | undefined>(undefined);
 
+function welcomeNotifications(): AppNotification[] {
+  return [
+    {
+      id: uid('nt'),
+      type: 'success',
+      title: 'Welcome to BetGuard',
+      message:
+        "You're all set with a clean account. Add money to your demo wallet and set a monthly budget to get started.",
+      date: new Date().toISOString(),
+      read: false,
+    },
+  ];
+}
+
 export function NotificationProvider({ children }: { children: ReactNode }) {
+  const { scopeKey, isDemoAccount } = useUser();
   const [notifications, setNotifications] = usePersistedState<AppNotification[]>(
-    'notifications',
-    sampleNotifications(),
+    `${scopeKey}:notifications`,
+    isDemoAccount ? sampleNotifications() : welcomeNotifications(),
   );
 
   const addNotification = useCallback(
@@ -56,8 +72,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, [setNotifications]);
 
   const resetNotifications = useCallback(() => {
-    setNotifications(sampleNotifications());
-  }, [setNotifications]);
+    setNotifications(isDemoAccount ? sampleNotifications() : welcomeNotifications());
+  }, [setNotifications, isDemoAccount]);
 
   const unreadCount = useMemo(
     () => notifications.filter((n) => !n.read).length,

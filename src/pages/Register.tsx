@@ -1,12 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate, useNavigate, Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { User, Cake, Briefcase, Banknote, Mail, Lock, Wallet, ArrowLeft, ArrowRight } from 'lucide-react';
+import { User, Cake, Briefcase, Banknote, Mail, Lock, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import { AuthShell } from '@/components/ui/AuthShell';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useUser } from '@/contexts/UserContext';
-import { useBudget } from '@/contexts/BudgetContext';
 import { useToast } from '@/contexts/ToastContext';
 
 interface FormState {
@@ -14,7 +13,6 @@ interface FormState {
   age: string;
   occupation: string;
   income: string;
-  budget: string;
   email: string;
   password: string;
 }
@@ -24,14 +22,12 @@ const INITIAL: FormState = {
   age: '',
   occupation: '',
   income: '',
-  budget: '',
   email: '',
   password: '',
 };
 
 export function Register() {
   const { isAuthenticated, register } = useUser();
-  const { setMonthlyBudget } = useBudget();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -61,10 +57,6 @@ export function Register() {
     const next: typeof errors = {};
     const income = Number(form.income);
     if (!form.income || Number.isNaN(income) || income < 0) next.income = 'Enter a valid monthly income.';
-    const budget = Number(form.budget);
-    if (!form.budget || Number.isNaN(budget) || budget < 0) next.budget = 'Enter a valid monthly budget.';
-    else if (budget > income * 0.2 && income > 0)
-      next.budget = 'Consider a budget of 20% or less of income.';
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -95,8 +87,6 @@ export function Register() {
     }
     setLoading(true);
     setTimeout(() => {
-      const budget = Number(form.budget);
-      setMonthlyBudget(budget);
       register({
         name: form.name.trim(),
         email: form.email.trim(),
@@ -106,7 +96,7 @@ export function Register() {
         riskLevel: null,
         joinedAt: new Date().toISOString(),
         notificationsEnabled: true,
-        isAdmin: true,
+        isAdmin: false,
       });
       toast('Account created! Welcome to BetGuard.');
       navigate('/dashboard', { replace: true });
@@ -129,7 +119,7 @@ export function Register() {
       <div className="mb-6">
         <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
           <span>Step {step} of 2</span>
-          <span>{step === 1 ? 'Personal Information' : 'Profile & Betting Setup'}</span>
+          <span>{step === 1 ? 'Personal Information' : 'Profile Setup'}</span>
         </div>
         <div className="mt-2.5 flex gap-1.5">
           {[1, 2].map((s) => (
@@ -233,16 +223,11 @@ export function Register() {
                   error={errors.income}
                 />
               </div>
-              <Input
-                label="Monthly betting budget"
-                hint="The maximum you can responsibly afford to lose each month."
-                type="number"
-                placeholder="300"
-                icon={<Wallet className="size-4" aria-hidden="true" />}
-                value={form.budget}
-                onChange={set('budget')}
-                error={errors.budget}
-              />
+              <p className="flex items-start gap-2.5 rounded-2xl bg-primary/5 px-4 py-3 text-xs leading-relaxed text-slate-500 dark:bg-primary-light/10 dark:text-slate-400">
+                <Sparkles className="mt-0.5 size-4 shrink-0 text-primary-light" aria-hidden="true" />
+                You'll set your monthly betting budget and add demo funds to your wallet right after
+                you sign up — the quick-start tour on your dashboard walks you through it.
+              </p>
             </motion.div>
           )}
         </AnimatePresence>

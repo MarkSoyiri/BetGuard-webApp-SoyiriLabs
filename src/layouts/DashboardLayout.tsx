@@ -6,6 +6,8 @@ import { Navbar } from '@/components/layout/Navbar';
 import { PageContentLoader } from '@/components/ui/PageLoader';
 import { prefetchAllPages } from '@/utils/pagePrefetch';
 import { useUser } from '@/contexts/UserContext';
+import { BudgetPrompt } from '@/components/onboarding/BudgetPrompt';
+import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow';
 
 export function DashboardLayout() {
   const { isAuthenticated } = useUser();
@@ -51,6 +53,8 @@ export function DashboardLayout() {
           BetGuard — responsible betting companion · Demo data is stored locally in your browser
         </footer>
       </div>
+      <BudgetPrompt />
+      <OnboardingFlow />
     </div>
   );
 }

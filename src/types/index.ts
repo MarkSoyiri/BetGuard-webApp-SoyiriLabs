@@ -8,6 +8,23 @@ export interface UserProfile {
   joinedAt: string;
   notificationsEnabled: boolean;
   isAdmin?: boolean;
+  isDemoAccount?: boolean;
+}
+
+export type WalletTransactionType = 'deposit' | 'bet' | 'win' | 'refund';
+
+export interface WalletTransaction {
+  id: string;
+  type: WalletTransactionType;
+  amount: number;
+  description: string;
+  date: string;
+  balanceAfter: number;
+}
+
+export interface WalletSnapshot {
+  balance: number;
+  transactions: WalletTransaction[];
 }
 
 export type BetOutcome = 'won' | 'lost';

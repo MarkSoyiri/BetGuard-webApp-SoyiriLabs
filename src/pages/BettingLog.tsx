@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, ListChecks, TrendingUp, TrendingDown, ClipboardList, Eraser, Eye } from 'lucide-react';
+import { Plus, Minus, Pencil, Trash2, ListChecks, TrendingUp, TrendingDown, ClipboardList, Eraser, Eye } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageTransition';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
@@ -58,6 +58,7 @@ export function BettingLog() {
   const [editForm, setEditForm] = useState<FormState>(EMPTY);
   const [deleting, setDeleting] = useState<BetRecord | null>(null);
   const [viewing, setViewing] = useState<BetRecord | null>(null);
+  const [mobileFormOpen, setMobileFormOpen] = useState(false);
 
   const stats = useMemo(() => computeStats(bets), [bets]);
 
@@ -105,6 +106,7 @@ export function BettingLog() {
     });
     toast('Bet logged successfully.');
     setForm(EMPTY);
+    setMobileFormOpen(false);
   };
 
   const clearForm = () => {
@@ -176,8 +178,18 @@ export function BettingLog() {
         subtitle="Track every bet you place — honesty here is your superpower."
       />
 
+      <button
+        type="button"
+        onClick={() => setMobileFormOpen((o) => !o)}
+        aria-expanded={mobileFormOpen}
+        className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-secondary to-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-secondary/25 transition hover:opacity-90 lg:hidden"
+      >
+        {mobileFormOpen ? <Minus className="size-4" aria-hidden="true" /> : <Plus className="size-4" aria-hidden="true" />}
+        {mobileFormOpen ? 'Hide add a bet' : 'Add a bet'}
+      </button>
+
       <div className="grid gap-6 lg:grid-cols-3">
-        <GlassCard className="h-fit p-6">
+        <GlassCard className={`h-fit p-6 lg:block ${mobileFormOpen ? 'block' : 'hidden'}`}>
           <h3 className="mb-5 flex items-center gap-2 font-display text-base font-bold text-ink dark:text-white">
             <ClipboardList className="size-5 text-primary-light" aria-hidden="true" />
             Add a bet

@@ -185,7 +185,7 @@ export function BettingLog() {
         className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-secondary to-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-secondary/25 transition hover:opacity-90 lg:hidden"
       >
         {mobileFormOpen ? <Minus className="size-4" aria-hidden="true" /> : <Plus className="size-4" aria-hidden="true" />}
-        {mobileFormOpen ? 'Hide add a bet' : 'Log a bet'}
+        {mobileFormOpen ? 'Hide' : 'Log a bet'}
       </button>
 
       <div className="grid gap-6 lg:grid-cols-3">

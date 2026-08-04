@@ -60,7 +60,7 @@ export function Navbar({ onOpenMobile }: NavbarProps) {
 
         <button
           onClick={() => setWalletOpen(true)}
-          className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white/60 px-3 py-2 text-sm font-bold text-ink shadow-sm transition hover:border-primary-light/50 hover:shadow-md dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+          className="ml-auto flex items-center gap-2 rounded-xl border border-slate-200 bg-white/60 px-3 py-2 text-sm font-bold text-ink shadow-sm transition hover:border-primary-light/50 hover:shadow-md md:ml-0 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
           aria-label={`Wallet balance ${formatGHS(balance)}. Tap to add money`}
         >
           <Wallet className="size-4 text-primary-light" aria-hidden="true" />

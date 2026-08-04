@@ -7,9 +7,10 @@ interface FABProps {
   to?: string;
   label: string;
   onClick?: () => void;
+  className?: string;
 }
 
-export function FloatingActionButton({ icon: Icon, to, label, onClick }: FABProps) {
+export function FloatingActionButton({ icon: Icon, to, label, onClick, className = '' }: FABProps) {
   const content = (
     <motion.span
       whileHover={{ scale: 1.08 }}
@@ -26,15 +27,17 @@ export function FloatingActionButton({ icon: Icon, to, label, onClick }: FABProp
     </motion.span>
   );
 
+  const wrapperCls = `fixed bottom-6 right-6 z-40 ${className}`;
+
   if (to) {
     return (
-      <Link to={to} className="fixed bottom-6 right-6 z-40">
+      <Link to={to} className={wrapperCls}>
         {content}
       </Link>
     );
   }
   return (
-    <button onClick={onClick} className="fixed bottom-6 right-6 z-40">
+    <button onClick={onClick} className={wrapperCls}>
       {content}
     </button>
   );

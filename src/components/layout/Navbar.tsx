@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, Bell, Sun, Moon, Search, Ticket, Wallet } from 'lucide-react';
+import { Menu, Bell, Sun, Moon, Search, Wallet } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { useUser } from '@/contexts/UserContext';
@@ -8,7 +8,6 @@ import { useWallet } from '@/contexts/WalletContext';
 import { DepositModal } from '@/components/wallet/DepositModal';
 import { InstallButton } from '@/components/pwa/InstallButton';
 import { useActiveSection } from './nav';
-import { prefetchPage } from '@/utils/pagePrefetch';
 import { formatGHS } from '@/utils/format';
 
 interface NavbarProps {
@@ -58,15 +57,6 @@ export function Navbar({ onOpenMobile }: NavbarProps) {
         >
           {theme === 'light' ? <Moon className="size-5" /> : <Sun className="size-5" />}
         </button>
-
-        <Link
-          to="/sportsbook"
-          onMouseEnter={() => prefetchPage('/sportsbook')}
-          className="ml-auto flex items-center rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-ink md:hidden dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
-          aria-label="Open sportsbook"
-        >
-          <Ticket className="size-5" />
-        </Link>
 
         <button
           onClick={() => setWalletOpen(true)}

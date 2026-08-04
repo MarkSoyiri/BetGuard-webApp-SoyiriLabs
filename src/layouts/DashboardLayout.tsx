@@ -1,19 +1,25 @@
 import { Suspense, useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Ticket } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Navbar } from '@/components/layout/Navbar';
 import { PageContentLoader } from '@/components/ui/PageLoader';
+import { FloatingActionButton } from '@/components/ui/FloatingActionButton';
 import { prefetchAllPages } from '@/utils/pagePrefetch';
 import { useUser } from '@/contexts/UserContext';
 import { BudgetPrompt } from '@/components/onboarding/BudgetPrompt';
 import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow';
+
+const SPORTSBOOK_FAB_PAGES = ['/dashboard', '/statistics', '/betting-log', '/budget', '/coach'];
 
 export function DashboardLayout() {
   const { isAuthenticated } = useUser();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const showSportsbookFab = SPORTSBOOK_FAB_PAGES.includes(location.pathname);
 
   useEffect(() => {
     const t = window.setTimeout(prefetchAllPages, 1200);
@@ -53,6 +59,14 @@ export function DashboardLayout() {
           BetGuard — responsible betting companion · Demo data is stored locally in your browser
         </footer>
       </div>
+      {showSportsbookFab && (
+        <FloatingActionButton
+          icon={Ticket}
+          to="/sportsbook"
+          label="Sportsbook"
+          className="md:hidden"
+        />
+      )}
       <BudgetPrompt />
       <OnboardingFlow />
     </div>
